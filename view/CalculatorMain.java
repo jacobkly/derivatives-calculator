@@ -6,6 +6,7 @@ package view;
 
 import java.util.ArrayList;
 import java.util.Scanner;
+import model.Differentiator;
 import model.ExpressionParser;
 import structures.BinaryTree;
 
@@ -61,34 +62,45 @@ public class CalculatorMain {
 			return;
 		} else {
 			try {
-				// final String output = Differentiator.differentiateTree(tree);
-				// System.out.println(myUserInput + " = " + output);
+				final String outputTree = Differentiator.derive(tree.getNode(), "x");
+				// final String output = Differentiator.treeToString(outputTree);
+				System.out.println("\n" + myUserInput + " = " + outputTree);
 			} catch (final Exception error) {
 				System.out.println("evaluation error has occured!");
 			}
 		}
 	}
 
+	/**
+	 * Repeatedly waits for an expression in infix notation to be entered by the user. It
+	 * runs the first input and after some parsing, feeds it to the shunting yard algorithm.
+	 *
+	 * This method also handles misplaced parentheses by asking the user to input once more.
+	 *
+	 * @param theConsole	a Scanner used to gather user input
+	 * @param thePrompt		the prompt to display to the user repeatedly
+	 * @return the user inputed infix notation expression represented in a binary tree
+	 */
 	private static BinaryTree<String> getTree(final Scanner theConsole,
 	    final String thePrompt) {
 		BinaryTree<String> quit = null;
 		if (isUserQuitting(myUserInput)) {
 			return quit;
 		}
-		ArrayList<String> strList = ExpressionParser.stringToList(myUserInput);
-		BinaryTree<String> expTree = ExpressionParser.shuntingYardTree(strList);
-		// while (!ExpressionParser.getIsValid()) {
-		// System.out.println("not a valid arithmetic expression. \nyour input may " +
-		// "contain misplaced parentheses. \n\nplease try again.");
-		// System.out.print(thePrompt);
-		// myUserInput = theConsole.nextLine();
-		// if (isUserQuitting(myUserInput)) {
-		// return quit;
-		// }
-		// strList = ExpressionParser.stringToList(myUserInput);
-		// expTree = ExpressionParser.shuntingYardTree(strList);
-		// }
-		return null;
+		ArrayList<String> infixList = ExpressionParser.stringToList(myUserInput);
+		BinaryTree<String> expTree = ExpressionParser.shuntingYardTree(infixList);
+		while (!ExpressionParser.getIsValid()) {
+			System.out.println("not a valid arithmetic expression. \nyour input may " +
+			    "contain misplaced parentheses. \n\nplease try again.");
+			System.out.print(thePrompt);
+			myUserInput = theConsole.nextLine();
+			if (isUserQuitting(myUserInput)) {
+				return quit;
+			}
+			infixList = ExpressionParser.stringToList(myUserInput);
+			expTree = ExpressionParser.shuntingYardTree(infixList);
+		}
+		return expTree;
 	}
 
 	/**
