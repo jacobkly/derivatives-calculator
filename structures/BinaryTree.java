@@ -134,18 +134,21 @@ public class BinaryTree<T> implements BinaryTreeADT<T>, Iterable<T> {
 		return result;
 	}
 
+	public T getNodeElement() {
+		return myRoot.getElement();
+	}
+
 	/**
-	 * Returns a string representation of this binary tree showing the nodes in an in-order
-	 * form.
+	 * Returns an in-order traversal string representation of this binary tree.
 	 *
-	 * @return an in-order string representation of this binary tree
+	 * @return an in-order traversal string representation of this binary tree
 	 */
 	@Override
 	public String toString() {
 		final StringBuilder sb = new StringBuilder();
 
 		Iterator<T> iterator = iterator();
-		sb.append("InOrder: [");
+		sb.append("\nInOrder: [");
 		while (iterator.hasNext()) {
 			sb.append(iterator.next());
 			if (iterator.hasNext()) {
@@ -154,15 +157,15 @@ public class BinaryTree<T> implements BinaryTreeADT<T>, Iterable<T> {
 		}
 		sb.append("]");
 
-		// iterator = iteratorLevelOrder();
-		// sb.append("\nLevelOrder: [");
-		// while (iterator.hasNext()) {
-		// sb.append(iterator.next());
-		// if (iterator.hasNext()) {
-		// sb.append(", ");
-		// }
-		// }
-		// sb.append("]");
+		iterator = iteratorLevelOrder();
+		sb.append("\nLevelOrder: [");
+		while (iterator.hasNext()) {
+			sb.append(iterator.next());
+			if (iterator.hasNext()) {
+				sb.append(", ");
+			}
+		}
+		sb.append("]");
 
 		return sb.toString();
 	}

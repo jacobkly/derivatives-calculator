@@ -49,6 +49,13 @@ public interface BinaryTreeADT<T> {
 	T find(T theTargetElement);
 
 	/**
+	 * Returns an iterator over the elements in this binary tree.
+	 *
+	 * @return an iterator over the elements in this binary tree
+	 */
+	Iterator<T> iterator();
+
+	/**
 	 * Returns an iterator that represents an inorder traversal on this binary tree.
 	 *
 	 * @return an iterator that represents an inorder traversal on this binary tree.
