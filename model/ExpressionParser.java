@@ -90,6 +90,13 @@ public class ExpressionParser {
 		return result;
 	}
 
+	/**
+	 * This implementation of the shunting yard algorithm parses a list containing the user
+	 * expression in infix notation, and converts it to a binary tree.
+	 *
+	 * @param theInfixList the infix notation expression displayed as a List
+	 * @return the infix notation expression represented in a binary tree
+	 */
 	public static BinaryTree<String> shuntingYardTree(final ArrayList<String> theInfixList) {
 		Deque<BinaryTree<String>> operandStack = new ArrayDeque<BinaryTree<String>>();
 		Deque<String> operatorStack = new ArrayDeque<String>();
@@ -132,8 +139,6 @@ public class ExpressionParser {
 				operatorStack.push(s);
 			}
 		}
-		// System.out.println(operandStack);
-		// System.out.println(operatorStack);
 		// adds/merges the rest of the operators into the tree as roots unless there is a
 		// misplaced parenthesis in the infix list (the user inputed expression)
 		while (!operatorStack.isEmpty() && !operandStack.isEmpty()) {
