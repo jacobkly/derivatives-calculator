@@ -28,7 +28,7 @@ public class BinaryTreeNode<T> {
 	 *
 	 * @param theElement the element that will become a part of the new tree node
 	 */
-	protected BinaryTreeNode(final T theElement) {
+	public BinaryTreeNode(final T theElement) {
 		myElement = theElement;
 		myLeft = null;
 		myRight = null;
@@ -41,7 +41,7 @@ public class BinaryTreeNode<T> {
 	 * @param theLeft		the root node of the left subtree of this node
 	 * @param theRight		the root node of the right subtree of this node
 	 */
-	protected BinaryTreeNode(final T theElement, final BinaryTreeNode<T> theLeft,
+	public BinaryTreeNode(final T theElement, final BinaryTreeNode<T> theLeft,
 	    final BinaryTreeNode<T> theRight) {
 		myElement = theElement;
 		myLeft = theLeft;
@@ -53,7 +53,7 @@ public class BinaryTreeNode<T> {
 	 *
 	 * @return the element stored at this node
 	 */
-	protected T getElement() {
+	public T getElement() {
 		return myElement;
 	}
 
@@ -62,7 +62,7 @@ public class BinaryTreeNode<T> {
 	 *
 	 * @param theNode the left child of this node
 	 */
-	protected void setLeft(final BinaryTreeNode<T> theNode) {
+	public void setLeft(final BinaryTreeNode<T> theNode) {
 		myLeft = theNode;
 	}
 
@@ -71,7 +71,7 @@ public class BinaryTreeNode<T> {
 	 *
 	 * @return the left child of this node
 	 */
-	protected BinaryTreeNode<T> getLeft() {
+	public BinaryTreeNode<T> getLeft() {
 		return myLeft;
 	}
 
@@ -80,7 +80,7 @@ public class BinaryTreeNode<T> {
 	 *
 	 * @param theNode the right child of this node.
 	 */
-	protected void setRight(final BinaryTreeNode<T> theNode) {
+	public void setRight(final BinaryTreeNode<T> theNode) {
 		myRight = theNode;
 	}
 
@@ -89,7 +89,7 @@ public class BinaryTreeNode<T> {
 	 *
 	 * @return the right child of this node
 	 */
-	protected BinaryTreeNode<T> getRight() {
+	public BinaryTreeNode<T> getRight() {
 		return myRight;
 	}
 

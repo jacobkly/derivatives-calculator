@@ -46,8 +46,17 @@ public class BinaryTree<T> implements BinaryTreeADT<T>, Iterable<T> {
 	public BinaryTree(final T theElement, final BinaryTree<T> theLeft,
 	    final BinaryTree<T> theRight) {
 		myRoot = new BinaryTreeNode<T>(theElement);
-		myRoot.setLeft(theLeft.myRoot); // gotta test if these two will give any null bugs
-		myRoot.setRight(theRight.myRoot);
+		if (theLeft == null) {
+			myRoot.setLeft(null);
+		} else {
+			myRoot.setLeft(theLeft.myRoot);
+		}
+
+		if (theRight == null) {
+			myRoot.setRight(null);
+		} else {
+			myRoot.setRight(theRight.myRoot);
+		}
 	}
 
 	@Override
@@ -136,6 +145,10 @@ public class BinaryTree<T> implements BinaryTreeADT<T>, Iterable<T> {
 
 	public T getNodeElement() {
 		return myRoot.getElement();
+	}
+
+	public BinaryTreeNode<T> getNode() {
+		return myRoot;
 	}
 
 	/**
