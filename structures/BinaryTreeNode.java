@@ -1,5 +1,5 @@
 /**
- * BinaryTreeNode - Derivates Calculator
+ * BinaryTreeNode - Derivatives Calculator
  */
 
 package structures;
@@ -93,4 +93,19 @@ public class BinaryTreeNode<T> {
 		return myRight;
 	}
 
+	/**
+	 * Returns the number of non-null children of this node.
+	 *
+	 * @return the number of children of this node
+	 */
+	public int numChildren() {
+		int children = 0;
+		if (myLeft != null) {
+			children = 1 + myLeft.numChildren();
+		}
+		if (myRight != null) {
+			children = 1 + children + myRight.numChildren();
+		}
+		return children;
+	}
 }

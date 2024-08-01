@@ -1,5 +1,5 @@
 /**
- * BinaryTree - Derivates Calculator
+ * BinaryTree - Derivatives Calculator
  */
 
 package structures;
@@ -22,9 +22,6 @@ public class BinaryTree<T> implements BinaryTreeADT<T>, Iterable<T> {
 
 	/** The root of this binary tree. */
 	protected BinaryTreeNode<T> myRoot;
-
-	/** The number of elements in this binary tree. */
-	protected int mySize;
 
 	/**
 	 * Constructs a binary tree with the specified element as its root.
@@ -65,18 +62,19 @@ public class BinaryTree<T> implements BinaryTreeADT<T>, Iterable<T> {
 		if (myRoot == null) {
 			result = 0;
 		} else {
-			result = mySize;
+			result = 1 + myRoot.numChildren();
 		}
 		return result;
 	}
 
+	// NOT TESTED
 	@Override
 	public int getHeight() {
 		int height = 0;
 		Queue<BinaryTreeNode<T>> queue = new LinkedList<>();
 		queue.add(myRoot);
 
-		while (queue.size() != 0) {
+		while (!queue.isEmpty()) {
 			int count = queue.size();
 			height++;
 			while (count > 0) {
@@ -93,6 +91,7 @@ public class BinaryTree<T> implements BinaryTreeADT<T>, Iterable<T> {
 		return height;
 	}
 
+	// NOT TESTED
 	@Override
 	public boolean contains(T theTargetElement) {
 		if (myRoot.getElement() == theTargetElement) {
@@ -103,21 +102,26 @@ public class BinaryTree<T> implements BinaryTreeADT<T>, Iterable<T> {
 		queue.add(myRoot);
 
 		while (!queue.isEmpty()) {
-			BinaryTreeNode<T> node = queue.poll();
-			if (node.getLeft().getElement() == theTargetElement) {
-				result = true;
-			} else {
-				queue.add(node.getLeft());
-			}
-			if (node.getRight().getElement() == theTargetElement) {
-				result = true;
-			} else {
-				queue.add(node.getRight());
+			int count = queue.size();
+			while (count > 0) {
+				BinaryTreeNode<T> node = queue.poll();
+				if (node.getLeft().getElement() == theTargetElement) {
+					result = true;
+				} else {
+					queue.add(node.getLeft());
+				}
+				if (node.getRight().getElement() == theTargetElement) {
+					result = true;
+				} else {
+					queue.add(node.getRight());
+				}
+				count--;
 			}
 		}
 		return result;
 	}
 
+	// NOT TESTED
 	@Override
 	public T find(T theTargetElement) {
 		if (myRoot.getElement() == theTargetElement) {
@@ -128,27 +132,33 @@ public class BinaryTree<T> implements BinaryTreeADT<T>, Iterable<T> {
 		queue.add(myRoot);
 
 		while (!queue.isEmpty()) {
-			BinaryTreeNode<T> node = queue.poll();
-			if (node.getLeft().getElement() == theTargetElement) {
-				result = node.getLeft().getElement();
-			} else {
-				queue.add(node.getLeft());
-			}
-			if (node.getRight().getElement() == theTargetElement) {
-				result = node.getRight().getElement();
-			} else {
-				queue.add(node.getRight());
+			int count = queue.size();
+			while (count > 0) {
+				BinaryTreeNode<T> node = queue.poll();
+				if (node.getLeft().getElement() == theTargetElement) {
+					result = node.getLeft().getElement();
+				} else {
+					queue.add(node.getLeft());
+				}
+				if (node.getRight().getElement() == theTargetElement) {
+					result = node.getRight().getElement();
+				} else {
+					queue.add(node.getRight());
+				}
+				count--;
 			}
 		}
 		return result;
 	}
 
-	public T getNodeElement() {
-		return myRoot.getElement();
-	}
-
+	@Override
 	public BinaryTreeNode<T> getNode() {
 		return myRoot;
+	}
+
+	@Override
+	public T getNodeElement() {
+		return myRoot.getElement();
 	}
 
 	/**

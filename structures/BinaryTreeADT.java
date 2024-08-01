@@ -1,5 +1,5 @@
 /**
- * BinaryTreeADT - Derivates Calculator
+ * BinaryTreeADT - Derivatives Calculator
  */
 
 package structures;
@@ -17,9 +17,9 @@ import java.util.Iterator;
 public interface BinaryTreeADT<T> {
 
 	/**
-	 * Returns the number of elements in this binary tree.
+	 * Returns the number of nodes in this binary tree.
 	 *
-	 * @return the number of elements in this binary tree
+	 * @return the number of nodes in this binary tree
 	 */
 	int size();
 
@@ -47,6 +47,20 @@ public interface BinaryTreeADT<T> {
 	 * @throws ElementNotFoundException if the element is not in this binary tree
 	 */
 	T find(T theTargetElement);
+
+	/**
+	 * Returns the node of this binary tree's root.
+	 *
+	 * @return the node of this binary tree's root
+	 */
+	BinaryTreeNode<T> getNode();
+
+	/**
+	 * Returns the element within the root node of this binary tree.
+	 *
+	 * @return the element within the root node of this binary tree
+	 */
+	T getNodeElement();
 
 	/**
 	 * Returns an iterator over the elements in this binary tree.
