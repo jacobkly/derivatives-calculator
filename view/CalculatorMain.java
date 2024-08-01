@@ -1,5 +1,5 @@
 /**
- * CalculatorMain - Derivates Calculator
+ * CalculatorMain - Derivatives Calculator
  */
 
 package view;
@@ -18,10 +18,17 @@ import structures.BinaryTree;
  */
 public class CalculatorMain {
 
+	/** The expected index position of the variable of differentiation. */
+	private final static int DIFF_VAR_POS = 3;
+
 	/** The user inputed infix notation arithmetic expression. */
 	private static String myUserInput = "";
 
+	/** Whether the user is quitting the program or not. */
 	private static boolean myUserQuitOption = false;
+
+	/** The variable of differentiation. */
+	private static Character myDiffVar;
 
 	/** A private constructor to inhibit external instantiation. */
 	private CalculatorMain() {
@@ -62,7 +69,7 @@ public class CalculatorMain {
 			return;
 		} else {
 			try {
-				final String outputTree = Differentiator.derive(tree.getNode(), "x");
+				final String outputTree = Differentiator.derive(tree.getNode(), myDiffVar);
 				// final String output = Differentiator.treeToString(outputTree);
 				System.out.println("\n" + myUserInput + " = " + outputTree);
 			} catch (final Exception error) {
@@ -87,7 +94,10 @@ public class CalculatorMain {
 		if (isUserQuitting(myUserInput)) {
 			return quit;
 		}
-		ArrayList<String> infixList = ExpressionParser.stringToList(myUserInput);
+		myDiffVar = myUserInput.charAt(DIFF_VAR_POS);
+		// converting the expression string to list, not including Leibniz's notation
+		ArrayList<String> infixList =
+		    ExpressionParser.stringToList(myUserInput.substring(DIFF_VAR_POS + 2));
 		BinaryTree<String> expTree = ExpressionParser.shuntingYardTree(infixList);
 		while (!ExpressionParser.getIsValid()) {
 			System.out.println("not a valid arithmetic expression. \nyour input may " +
