@@ -14,6 +14,9 @@ import structures.BinaryTreeNode;
  */
 public class Differentiator {
 
+	/** The default base value for logarithms without specified bases. */
+	private final static String DEFAULT_BASE = "10";
+
 	/** A private constructor to inhibit external instantiation. */
 	private Differentiator() {
 		// do nothing
@@ -41,7 +44,11 @@ public class Differentiator {
 				final String diffRight = derive(theRoot.getRight(), theVariable);
 				derivative = deriveOperator(left, right, diffLeft, diffRight, rootElement);
 			} else if (ExpressionParser.isFunction(rootElement)) {
-
+				if (rootElement.equals("ln") || rootElement.substring(0, 3).equals("log")) {
+					derivative = deriveLog(theRoot, theVariable);
+				} else {
+					derivative = deriveTrig(theRoot, theVariable);
+				}
 			} else { // second base case here - a constant or variable
 				if (rootElement.matches(".*" + theVariable + ".*")) { // contains a variable
 					if (rootElement.length() > 1) { // constant * variable of differentiation
@@ -87,8 +94,52 @@ public class Differentiator {
 				derivative = "(" + theDiffLeft + ")(" + theRight + ") + (" + theLeft + ")(" +
 				    theDiffRight + ")";
 				break;
-			case "^": // ERROR - implementing handling diff var in the exponent
+			case "^": // ERROR - implement handling var of diff in the exponent
 				derivative = theRight + theLeft + " ^ (" + theRight + " - 1)";
+				break;
+		}
+		return derivative;
+	}
+
+	private static String deriveLog(final BinaryTreeNode<String> theRoot,
+	    final Character theVariable) {
+		String derivative = "";
+		final String rootElement = theRoot.getElement();
+		if (rootElement.equals("ln")) {
+			derivative = "(1 / ln(" + theVariable + "))";
+		} else { // regular logarithm
+			if (rootElement.contains("_")) {
+				final String baseString = rootElement.substring(4);
+				derivative = "(1 / " + theVariable + " * ln(" + baseString + "))";
+			} else {
+				derivative = "(1 / " + theVariable + " * ln(" + DEFAULT_BASE + "))";
+			}
+		}
+		return derivative;
+	}
+
+	private static String deriveTrig(final BinaryTreeNode<String> theRoot,
+	    final Character theVariable) {
+		String derivative = "";
+		final String rootElement = theRoot.getElement();
+		switch (rootElement) {
+			case "sin":
+				derivative = "cos(" + theVariable + ")";
+				break;
+			case "cos":
+				derivative = "-sin(" + theVariable + ")";
+				break;
+			case "tan":
+				derivative = "(sec(" + theVariable + ") ^ 2)";
+				break;
+			case "sec":
+				derivative = "(-csc(" + theVariable + ")cot(" + theVariable + "))";
+				break;
+			case "csc":
+				derivative = "(sec(" + theVariable + ")tan(" + theVariable + "))";
+				break;
+			case "cot":
+				derivative = "(-(sec(" + theVariable + ")) ^ 2)";
 				break;
 		}
 		return derivative;
