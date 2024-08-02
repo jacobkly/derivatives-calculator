@@ -94,21 +94,28 @@ public class CalculatorMain {
 		if (isUserQuitting(myUserInput)) {
 			return quit;
 		}
-		myDiffVar = myUserInput.charAt(DIFF_VAR_POS);
-		// converting the expression string to list, not including Leibniz's notation
-		ArrayList<String> infixList =
-		    ExpressionParser.stringToList(myUserInput.substring(DIFF_VAR_POS + 2));
-		BinaryTree<String> expTree = ExpressionParser.shuntingYardTree(infixList);
-		while (!ExpressionParser.getIsValid()) {
-			System.out.println("not a valid arithmetic expression. \nyour input may " +
-			    "contain misplaced parentheses. \n\nplease try again.");
-			System.out.print(thePrompt);
-			myUserInput = theConsole.nextLine();
-			if (isUserQuitting(myUserInput)) {
-				return quit;
-			}
-			infixList = ExpressionParser.stringToList(myUserInput);
+		BinaryTree<String> expTree = null;
+		try {
+			myDiffVar = myUserInput.charAt(DIFF_VAR_POS);
+			// converting the expression string to list, not including Leibniz's notation
+			ArrayList<String> infixList =
+			    ExpressionParser.stringToList(myUserInput.substring(DIFF_VAR_POS + 2));
 			expTree = ExpressionParser.shuntingYardTree(infixList);
+			while (!ExpressionParser.getIsValid()) {
+				System.out.println("not a valid arithmetic expression. \nyour input may " +
+				    "contain misplaced parentheses. \n\nplease try again.");
+				System.out.print(thePrompt);
+				myUserInput = theConsole.nextLine();
+				if (isUserQuitting(myUserInput)) {
+					return quit;
+				}
+				infixList = ExpressionParser.stringToList(myUserInput);
+				expTree = ExpressionParser.shuntingYardTree(infixList);
+			}
+		} catch (final Exception theError) {
+			System.out.println("\nplease include Leibniz's notation and/or an expression to " +
+			    "be differentiated!");
+			return quit;
 		}
 		return expTree;
 	}
