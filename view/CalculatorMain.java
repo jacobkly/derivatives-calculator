@@ -9,6 +9,7 @@ import java.util.Scanner;
 import model.Differentiator;
 import model.ExpressionParser;
 import structures.BinaryTree;
+import structures.BinaryTreeNode;
 
 /**
  * A console-based program to perform symbolic differentiation on mathematical expressions.
@@ -27,8 +28,8 @@ public class CalculatorMain {
 	/** Whether the user is quitting the program or not. */
 	private static boolean myUserQuitOption = false;
 
-	/** The variable of differentiation. */
-	private static Character myDiffVar;
+	/** The variable of differentiation represented by a node. */
+	private static BinaryTreeNode<String> myDiffVar = null;
 
 	/** A private constructor to inhibit external instantiation. */
 	private CalculatorMain() {
@@ -69,9 +70,13 @@ public class CalculatorMain {
 			return;
 		} else {
 			try {
-				final String outputTree = Differentiator.derive(tree.getNode(), myDiffVar);
+				final String diffVar = myUserInput.substring(DIFF_VAR_POS, DIFF_VAR_POS + 1);
+				myDiffVar = new BinaryTreeNode<String>(diffVar);
+				final BinaryTreeNode<String> outputTreeNode =
+				    Differentiator.derive(tree.getNode(), myDiffVar);
 				// final String output = Differentiator.treeToString(outputTree);
-				System.out.println("\n" + myUserInput + " = " + outputTree);
+				System.out.println("\n" + myUserInput + " = " +
+				    Differentiator.treeNodeToString(outputTreeNode));
 			} catch (final Exception error) {
 				System.out.println("evaluation error has occured!");
 			}
@@ -96,7 +101,6 @@ public class CalculatorMain {
 		}
 		BinaryTree<String> expTree = null;
 		try {
-			myDiffVar = myUserInput.charAt(DIFF_VAR_POS);
 			// converting the expression string to list, not including Leibniz's notation
 			ArrayList<String> infixList =
 			    ExpressionParser.stringToList(myUserInput.substring(DIFF_VAR_POS + 2));
@@ -115,7 +119,6 @@ public class CalculatorMain {
 		} catch (final Exception theError) {
 			System.out.println("\nplease include Leibniz's notation and/or an expression to " +
 			    "be differentiated!");
-			return quit;
 		}
 		return expTree;
 	}
