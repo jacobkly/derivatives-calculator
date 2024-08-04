@@ -93,7 +93,7 @@ public class BinaryTree<T> implements BinaryTreeADT<T>, Iterable<T> {
 
 	// NOT TESTED
 	@Override
-	public boolean contains(T theTargetElement) {
+	public boolean contains(final T theTargetElement) {
 		if (myRoot.getElement() == theTargetElement) {
 			return true;
 		}
@@ -123,7 +123,7 @@ public class BinaryTree<T> implements BinaryTreeADT<T>, Iterable<T> {
 
 	// NOT TESTED
 	@Override
-	public T find(T theTargetElement) {
+	public T find(final T theTargetElement) {
 		if (myRoot.getElement() == theTargetElement) {
 			return myRoot.getElement();
 		}
