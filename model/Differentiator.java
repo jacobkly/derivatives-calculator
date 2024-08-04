@@ -1,5 +1,5 @@
 /**
- * ExpressionParser - Derivatives Calculator
+ * Differentiator - Derivatives Calculator
  */
 
 package model;
@@ -14,51 +14,47 @@ import structures.BinaryTreeNode;
  */
 public class Differentiator {
 
-	/** The default base value for logarithms without specified bases. */
-	private final static String DEFAULT_BASE = "10";
-
 	/** A private constructor to inhibit external instantiation. */
 	private Differentiator() {
 		// do nothing
 	}
 
 	/**
-	 * Returns a String representing the derivative of the binary tree node root.
+	 * Returns a binary tree node representing the derivative of the original root's
+	 * equivalent expression.
 	 *
 	 * @param theRoot		the root node representing the expression segment being derived
-	 * @param theVariable	the chosen independent variable for differentiation
-	 * @return a String representing the derivative of the binary tree node root
+	 * @param theVarDiff	the chosen variable of differentiation represented by a node
+	 * @return a binary tree node representing the derivative of the root's equivalent expression
 	 */
-	public static String derive(final BinaryTreeNode<String> theRoot,
-	    final Character theVariable) {
+	public static BinaryTreeNode<String> derive(final BinaryTreeNode<String> theRoot,
+	    final BinaryTreeNode<String> theVarDiff) {
 		// System.out.println("\n" + treeToString(theRoot));
-		String derivative = "";
-		if (theRoot != null) { // first base case here
+		BinaryTreeNode<String> derivative = null;
+
+		if (theRoot != null) { // first base case here - cannot derive null
 			final String rootElement = theRoot.getElement();
 			if (isOperator(rootElement)) {
-				final String left = treeToString(theRoot.getLeft());
-				final String right = treeToString(theRoot.getRight());
-				// differentiated left subtree
-				final String diffLeft = derive(theRoot.getLeft(), theVariable);
-				// differentiated right subtree
-				final String diffRight = derive(theRoot.getRight(), theVariable);
-				derivative = deriveOperator(left, right, diffLeft, diffRight, rootElement);
+				derivative = deriveOperator(theRoot, theVarDiff);
 			} else if (ExpressionParser.isFunction(rootElement)) {
 				if (rootElement.equals("ln") || rootElement.substring(0, 3).equals("log")) {
-					derivative = deriveLog(theRoot, theVariable);
+					derivative = deriveLog(theRoot, theVarDiff);
 				} else {
-					derivative = deriveTrig(theRoot, theVariable);
+					derivative = deriveTrig(theRoot, theVarDiff);
 				}
-			} else { // second base case here - a constant or variable
-				if (rootElement.matches(".*" + theVariable + ".*")) { // contains a variable
+			} else { // second base case here - a constant or contains variable
+				final String varDiffElement = theVarDiff.getElement();
+				if (rootElement.matches(".*" + varDiffElement + ".*")) { // contains a variable
 					if (rootElement.length() > 1) { // constant * variable of differentiation
-						char ch = Character.MIN_VALUE;
-						derivative = rootElement.replace(theVariable, ch);
-					} else { // the variable of differentiation is alone
-						derivative = "1";
+						final char empty = Character.MIN_VALUE; // acts as an empty character
+						final char varDiff = varDiffElement.charAt(0);
+						final String derivativeString = rootElement.replace(varDiff, empty);
+						derivative = new BinaryTreeNode<String>(derivativeString);
+					} else { // the root is only the variable of differentiation
+						derivative = new BinaryTreeNode<String>("1");
 					}
 				} else { // only contains a constant
-					derivative = "0";
+					derivative = new BinaryTreeNode<String>("0");
 				}
 			}
 		}
@@ -66,83 +62,147 @@ public class Differentiator {
 	}
 
 	/**
-	 * Applies the corresponding operator differentiation rule and returns a String
-	 * representing differentiated expression.
+	 * Applies the corresponding operator differentiation rule and returns a binary tree node
+	 * representing the derivative of the original root's equivalent expression.
 	 *
-	 * @param theLeft 		a String representing the left subtree of the expression
-	 * @param theRight		a String representing the right subtree of the expression
-	 * @param theDiffLeft	a String representing the differentiated left subtree
-	 * @param theDiffRight 	a String representing the differentiated left subtree
-	 * @param theOperator	the operator determining the differentiation rule to apply
-	 * @return a String representing differentiated expression
+	 * @param theRoot		the root node representing the expression segment being derived
+	 * @param theVarDiff	the chosen variable of differentiation represented by a node
+	 * @return a binary tree node representing the derivative of the root's equivalent expression
 	 */
-	private static String deriveOperator(final String theLeft, final String theRight,
-	    final String theDiffLeft, final String theDiffRight, final String theOperator) {
-		String derivative = "";
-		switch (theOperator) {
+	private static BinaryTreeNode<String> deriveOperator(final BinaryTreeNode<String> theRoot,
+	    final BinaryTreeNode<String> theVarDiff) {
+		final String operator = theRoot.getElement();
+		final BinaryTreeNode<String> diffLeftNode = derive(theRoot.getLeft(), theVarDiff);
+		final BinaryTreeNode<String> diffRightNode = derive(theRoot.getRight(), theVarDiff);
+		final BinaryTreeNode<String> leftProduct =
+		    new BinaryTreeNode<String>("*", diffLeftNode, theRoot.getRight());
+		final BinaryTreeNode<String> rightProduct =
+		    new BinaryTreeNode<String>("*", theRoot.getLeft(), diffRightNode);
+		BinaryTreeNode<String> derivative = null;
+
+		switch (operator) {
 			case "-":
-				derivative = theDiffLeft + " " + theOperator + " " + theDiffRight;
+				derivative = new BinaryTreeNode<String>(operator, diffLeftNode, diffRightNode);
 				break;
 			case "+":
-				derivative = theDiffLeft + " " + theOperator + " " + theDiffRight;
+				derivative = new BinaryTreeNode<String>(operator, diffLeftNode, diffRightNode);
 				break;
 			case "/":
-				derivative = "((" + theDiffLeft + ")(" + theRight + ") - (" + theDiffRight +
-				    ")(" + theLeft + ")) / (" + theRight + ") ^ 2";
+				final BinaryTreeNode<String> numerator =
+				    new BinaryTreeNode<String>("-", leftProduct, rightProduct);
+				final BinaryTreeNode<String> two = new BinaryTreeNode<String>("2");
+				final BinaryTreeNode<String> denominator =
+				    new BinaryTreeNode<String>("^", theRoot.getRight(), two);
+				derivative = new BinaryTreeNode<String>("/", numerator, denominator);
 				break;
 			case "*":
-				derivative = "(" + theDiffLeft + ")(" + theRight + ") + (" + theLeft + ")(" +
-				    theDiffRight + ")";
+				derivative = new BinaryTreeNode<String>("+", leftProduct, rightProduct);
 				break;
-			case "^": // ERROR - implement handling var of diff in the exponent
-				derivative = theRight + theLeft + " ^ (" + theRight + " - 1)";
+			case "^":
+				// ERROR - need to add handling for when the var of diff is in the exponent
+				// (i.e. chain rule or exponential rule)
+				final BinaryTreeNode<String> base =
+				    new BinaryTreeNode<String>("*", theRoot.getRight(), theRoot.getLeft());
+				final BinaryTreeNode<String> one = new BinaryTreeNode<String>("1");
+				final BinaryTreeNode<String> decrementPower =
+				    new BinaryTreeNode<String>("-", theRoot.getRight(), one);
+				derivative = new BinaryTreeNode<String>("^", base, decrementPower);
 				break;
 		}
 		return derivative;
 	}
 
-	private static String deriveLog(final BinaryTreeNode<String> theRoot,
-	    final Character theVariable) {
-		String derivative = "";
+	/**
+	 * Returns a binary tree node representing the derivative of simple logarithmic functions
+	 * that require no chain rule.
+	 *
+	 * @param theRoot		the root node representing the logarithmic function being derived
+	 * @param theVarDiff	the chosen variable of differentiation represented by a node
+	 * @return a binary tree node representing the derivative of the logarithmic function
+	 */
+	private static BinaryTreeNode<String> deriveLog(final BinaryTreeNode<String> theRoot,
+	    final BinaryTreeNode<String> theVarDiff) {
+		final BinaryTreeNode<String> one = new BinaryTreeNode<String>("1");
+		BinaryTreeNode<String> derivative = null;
+
 		final String rootElement = theRoot.getElement();
-		if (rootElement.equals("ln")) {
-			derivative = "(1 / ln(" + theVariable + "))";
-		} else { // regular logarithm
-			if (rootElement.contains("_")) {
-				final String baseString = rootElement.substring(4);
-				derivative = "(1 / " + theVariable + " * ln(" + baseString + "))";
-			} else {
-				derivative = "(1 / " + theVariable + " * ln(" + DEFAULT_BASE + "))";
-			}
+		// specified base value -- 1 / (<theVarDiff> * log(<base>))
+		if (rootElement.contains("_")) {
+			final BinaryTreeNode<String> base =
+			    new BinaryTreeNode<String>(rootElement.substring(4));
+			final BinaryTreeNode<String> log = new BinaryTreeNode<String>("log", base, null);
+			final BinaryTreeNode<String> variableLog =
+			    new BinaryTreeNode<String>("*", theVarDiff, log);
+			derivative = new BinaryTreeNode<String>("/", one, variableLog);
+		} else if (!rootElement.contains("_")) { // no specified base value -- 1 / <theVarDiff>
+			derivative = new BinaryTreeNode<String>("/", one, theVarDiff);
 		}
 		return derivative;
 	}
 
-	private static String deriveTrig(final BinaryTreeNode<String> theRoot,
-	    final Character theVariable) {
-		String derivative = "";
+	/**
+	 * Returns a binary tree node representing the derivative of simple trigonometric
+	 * functions that require no chain rule.
+	 *
+	 * @param theRoot		the root node representing the trigonometric function being derived
+	 * @param theVarDiff	the chosen variable of differentiation represented by a node
+	 * @return a binary tree node representing the derivative of the trigonometric function
+	 */
+	private static BinaryTreeNode<String> deriveTrig(final BinaryTreeNode<String> theRoot,
+	    final BinaryTreeNode<String> theVarDiff) {
+		final BinaryTreeNode<String> sine =
+		    new BinaryTreeNode<String>("sin", theVarDiff, null);
+		final BinaryTreeNode<String> secant =
+		    new BinaryTreeNode<String>("sec", theVarDiff, null);
+		final BinaryTreeNode<String> zero = new BinaryTreeNode<String>("0");
+		final BinaryTreeNode<String> two = new BinaryTreeNode<String>("2");
+		BinaryTreeNode<String> derivative = null;
+
 		final String rootElement = theRoot.getElement();
 		switch (rootElement) {
-			case "sin":
-				derivative = "cos(" + theVariable + ")";
+			case "sin": // cos(<theVariable>)
+				derivative = new BinaryTreeNode<String>("cos", theVarDiff, null);
 				break;
-			case "cos":
-				derivative = "-sin(" + theVariable + ")";
+			case "cos": // 0 - (<theVariable>)
+				derivative = new BinaryTreeNode<String>("-", zero, sine);
 				break;
-			case "tan":
-				derivative = "(sec(" + theVariable + ") ^ 2)";
+			case "tan": // (sec(<theVariable>)) ^ 2
+				derivative = new BinaryTreeNode<String>("^", secant, two);
 				break;
-			case "sec":
-				derivative = "(-csc(" + theVariable + ")cot(" + theVariable + "))";
+			case "sec": // (sec(x)) * (tan(x))
+				final BinaryTreeNode<String> tangent =
+				    new BinaryTreeNode<String>("tan", theVarDiff, null);
+				derivative = new BinaryTreeNode<String>("*", secant, tangent);
 				break;
-			case "csc":
-				derivative = "(sec(" + theVariable + ")tan(" + theVariable + "))";
+			case "csc": // 0 - ((csc(x)) * (cot(x)))
+				final BinaryTreeNode<String> cosecant =
+				    new BinaryTreeNode<String>("csc", theVarDiff, null);
+				final BinaryTreeNode<String> cotangent =
+				    new BinaryTreeNode<String>("cot", theVarDiff, null);
+				final BinaryTreeNode<String> cscCot =
+				    new BinaryTreeNode<String>("*", cosecant, cotangent);
+				derivative = new BinaryTreeNode<String>("-", zero, cscCot);
 				break;
-			case "cot":
-				derivative = "(-(sec(" + theVariable + ")) ^ 2)";
+			case "cot": // -1 / ((sin(x)) ^ 2)
+				final BinaryTreeNode<String> negOne = new BinaryTreeNode<String>("-1");
+				final BinaryTreeNode<String> sineSquared =
+				    new BinaryTreeNode<String>("^", sine, two);
+				derivative = new BinaryTreeNode<String>("/", negOne, sineSquared);
 				break;
 		}
 		return derivative;
+	}
+
+	private static BinaryTreeNode<String> chainRule(final BinaryTreeNode<String> theRoot,
+	    final BinaryTreeNode<String> theVarDiff) {
+		// TODO
+		return null;
+	}
+
+	private static BinaryTreeNode<String> exponentialRule(final BinaryTreeNode<String> theRoot,
+	    final BinaryTreeNode<String> theVarDiff) {
+		// TODO
+		return null;
 	}
 
 	/**
@@ -161,32 +221,34 @@ public class Differentiator {
 	}
 
 	/**
-	 * Returns a String representing the binary tree as a mathematical expression recursively.
+	 * Returns a String representing the binary tree root node and the root's children as a
+	 * mathematical expression, recursively.
 	 *
 	 * @param theRoot the root node of this binary tree
 	 * @return a String representing the binary tree as an expression
 	 */
-	private static String treeToString(final BinaryTreeNode<String> theRoot) {
+	public static String treeNodeToString(final BinaryTreeNode<String> theRoot) {
 		String result = "";
-		if (isOperator(theRoot.getElement())) {
-			/*
-			 * Improves final expression readability by adding parentheses surrounding chunks
-			 * of the tree. However, the bigger the tree, the messier the String becomes. Best
-			 * thing to do in the future is to use apply parentheses around two operands and
-			 * an operator. The operands could be other chunks of expressions, like "(x ^ 2)".
-			 *
-			 * Operator Example: "(<operand> <operator> <operand>)"
-			 * Function Example: "(<function>(<operand>))"
-			 */
-			if (theRoot.numChildren() == 2 || theRoot.numChildren() == 6) {
-				// result = "(" + treeToString(theRoot.getLeft()) + " " +
-				// theRoot.getElement() + " " + treeToString(theRoot.getRight()) + ")";
-				// } else {
-				result = treeToString(theRoot.getLeft()) + " " +
-				    theRoot.getElement() + " " + treeToString(theRoot.getRight());
+		/*
+		 * Improves final expression readability by adding parentheses surrounding chunks
+		 * of the tree. Still needs to be tested for readability. Potentially add a second
+		 * parameter keeping track if the recursive call is within a subtree or not. This can
+		 * remove unneeded parentheses.
+		 *
+		 * Operator Example: "(<operand> <operator> <operand>)"
+		 * Function Example: "(<function>(<operand>))"
+		 */
+		if (theRoot != null) { // one base case - making sure caller does not include null node
+			final String rootElement = theRoot.getElement();
+			if (isOperator(rootElement)) {
+				result = "(" + treeNodeToString(theRoot.getLeft()) + " " +
+				    rootElement + " " + treeNodeToString(theRoot.getRight()) + ")";
+			} else if (ExpressionParser.isFunction(rootElement)) {
+				// WRONG - later implement the first pair of parentheses when inside the subtree
+				result = rootElement + "(" + treeNodeToString(theRoot.getLeft()) + ")";
+			} else { // second (real) base case - root is a constant or var of differentiation
+				result = rootElement;
 			}
-		} else { // the base case is when the root is a constant or variable
-			result = theRoot.getElement();
 		}
 		return result;
 	}
