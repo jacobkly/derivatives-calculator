@@ -8,7 +8,7 @@ package structures;
  * BinaryTreeNode represents a node in an binary tree with a left and right child.
  *
  * @author Jacob Klymenko
- * @version 1.0
+ * @version 1.1
  *
  * @param <T> the generic type placeholder
  */
@@ -107,5 +107,32 @@ public class BinaryTreeNode<T> {
 			children = 1 + children + myRight.numChildren();
 		}
 		return children;
+	}
+
+	/**
+	 * Returns true if the target element is in the root node or its children; otherwise false.
+	 *
+	 * @param theTargetElement 	the target element being searched for in this binary tree
+	 * @param theRoot 			the root node defining the binary tree which may or may not
+	 * 							contain the target element
+	 * @return true if the target element is in the root node or its children; otherwise false.
+	 */
+	public boolean contains(final T theTargetElement, final BinaryTreeNode<T> theRoot) {
+		boolean result = false;
+		if (theRoot != null) {
+			if (theRoot.getElement().equals(theTargetElement)) {
+				result = true;
+			} else {
+				if (myLeft != null) {
+					result = myLeft.contains(theTargetElement, myLeft);
+				}
+				if (result == false) {
+					if (myRight != null) {
+						myRight.contains(theTargetElement, myRight);
+					}
+				}
+			}
+		}
+		return result;
 	}
 }
