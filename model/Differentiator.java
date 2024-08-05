@@ -10,7 +10,7 @@ import structures.BinaryTreeNode;
  * Differentiator differentiates a binary tree representing a symbolic mathematical expression.
  *
  * @author Jacob Klymenko
- * @version 1.0
+ * @version 2.0
  */
 public class Differentiator {
 
@@ -99,14 +99,23 @@ public class Differentiator {
 				derivative = new BinaryTreeNode<String>("+", leftProduct, rightProduct);
 				break;
 			case "^":
-				// ERROR - need to add handling for when the var of diff is in the exponent
-				// (i.e. chain rule or exponential rule)
-				final BinaryTreeNode<String> base =
-				    new BinaryTreeNode<String>("*", theRoot.getRight(), theRoot.getLeft());
-				final BinaryTreeNode<String> one = new BinaryTreeNode<String>("1");
-				final BinaryTreeNode<String> decrementPower =
-				    new BinaryTreeNode<String>("-", theRoot.getRight(), one);
-				derivative = new BinaryTreeNode<String>("^", base, decrementPower);
+				final String varDiff = theVarDiff.getElement();
+				// checking if chain/exponent rules need to be applied
+				if (theRoot.getRight().contains(varDiff, theRoot.getRight())) {
+					// apply non-derivative exponent rule and chain rule
+					if (theRoot.getLeft().contains(varDiff, theRoot.getLeft())) {
+						derivative = chainRule(theRoot, theVarDiff);
+					} else { // apply derivative exponent rule
+						derivative = exponentRule(theRoot, theVarDiff);
+					}
+				} else { // else apply power rule
+					final BinaryTreeNode<String> base =
+					    new BinaryTreeNode<String>("*", theRoot.getRight(), theRoot.getLeft());
+					final BinaryTreeNode<String> one = new BinaryTreeNode<String>("1");
+					final BinaryTreeNode<String> decrementPower =
+					    new BinaryTreeNode<String>("-", theRoot.getRight(), one);
+					derivative = new BinaryTreeNode<String>("^", base, decrementPower);
+				}
 				break;
 		}
 		return derivative;
@@ -193,16 +202,51 @@ public class Differentiator {
 		return derivative;
 	}
 
-	private static BinaryTreeNode<String> chainRule(final BinaryTreeNode<String> theRoot,
+	private static BinaryTreeNode<String> exponentRule(final BinaryTreeNode<String> theRoot,
 	    final BinaryTreeNode<String> theVarDiff) {
-		// TODO
-		return null;
+		final BinaryTreeNode<String> naturalLog =
+		    new BinaryTreeNode<String>("ln", theRoot.getLeft(), null);
+		final BinaryTreeNode<String> derivative =
+		    new BinaryTreeNode<String>("*", theRoot, naturalLog);
+		return derivative;
 	}
 
-	private static BinaryTreeNode<String> exponentialRule(final BinaryTreeNode<String> theRoot,
+	private static BinaryTreeNode<String> chainRule(final BinaryTreeNode<String> theRoot,
 	    final BinaryTreeNode<String> theVarDiff) {
-		// TODO
-		return null;
+		BinaryTreeNode<String> derivative = null;
+		if (theRoot.getElement().equals("^")) {
+			// apply non-derivative exponent rule to theRoot parameter and create a new root
+			BinaryTreeNode<String> naturalLog =
+			    new BinaryTreeNode<String>("ln", theRoot.getLeft(), null);
+			BinaryTreeNode<String> product =
+			    new BinaryTreeNode<String>("*", theRoot.getRight(), naturalLog);
+			final BinaryTreeNode<String> eulersNum = new BinaryTreeNode<String>("e");
+			final BinaryTreeNode<String> newRoot =
+			    new BinaryTreeNode<String>("^", eulersNum, product);
+			// apply chain rule to the new root
+			final BinaryTreeNode<String> diffRightNode = derive(newRoot.getRight(), theVarDiff);
+			derivative = new BinaryTreeNode<String>("*", newRoot, diffRightNode);
+		} else if (ExpressionParser.isFunction(theRoot.getElement())) {
+			BinaryTreeNode<String> diffRoot = derive(theRoot, theVarDiff);
+
+			/*
+			 * The below portion of the code is temporary.
+			 *
+			 * I will need to create a replace node method in binary tree node class. this is
+			 * due to my implementation for d/dx of cos(x) = (0 - sin(x)) where the root is a
+			 * minus sign rather than the sine function. i need to be able to change that
+			 * variable of differentiation ("x" in this example) into the inner portion of
+			 * the original function that the chain rule applies to.
+			 * ----------- PRACTICALLY only works for d/dx sin(cos(x)) ------------------------
+			 */
+
+			// updating the diffRoot to contain the the first half of the chain rule derivative
+			// new node (<diff outer function>, <inner function>, null)
+			diffRoot = new BinaryTreeNode<String>(diffRoot.getElement(), theRoot.getLeft(), null);
+			final BinaryTreeNode<String> diffInner = derive(theRoot.getLeft(), theVarDiff);
+			derivative = new BinaryTreeNode<String>("*", diffRoot, diffInner);
+		}
+		return derivative;
 	}
 
 	/**
