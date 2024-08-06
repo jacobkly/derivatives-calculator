@@ -37,10 +37,15 @@ public class Differentiator {
 			if (isOperator(rootElement)) {
 				derivative = deriveOperator(theRoot, theVarDiff);
 			} else if (ExpressionParser.isFunction(rootElement)) {
-				if (rootElement.equals("ln") || rootElement.substring(0, 3).equals("log")) {
-					derivative = deriveLog(theRoot, theVarDiff);
+				final String leftNodeElem = theRoot.getLeft().getElement();
+				if (ExpressionParser.isFunction(leftNodeElem) || isOperator(leftNodeElem)) {
+					derivative = chainRule(theRoot, theVarDiff);
 				} else {
-					derivative = deriveTrig(theRoot, theVarDiff);
+					if (rootElement.equals("ln") || rootElement.substring(0, 3).equals("log")) {
+						derivative = deriveLog(theRoot, theVarDiff);
+					} else {
+						derivative = deriveTrig(theRoot, theVarDiff);
+					}
 				}
 			} else { // second base case here - a constant or contains variable
 				final String varDiffElement = theVarDiff.getElement();
@@ -79,7 +84,6 @@ public class Differentiator {
 		final BinaryTreeNode<String> rightProduct =
 		    new BinaryTreeNode<String>("*", theRoot.getLeft(), diffRightNode);
 		BinaryTreeNode<String> derivative = null;
-
 		switch (operator) {
 			case "-":
 				derivative = new BinaryTreeNode<String>(operator, diffLeftNode, diffRightNode);
@@ -216,9 +220,9 @@ public class Differentiator {
 		BinaryTreeNode<String> derivative = null;
 		if (theRoot.getElement().equals("^")) {
 			// apply non-derivative exponent rule to theRoot parameter and create a new root
-			BinaryTreeNode<String> naturalLog =
+			final BinaryTreeNode<String> naturalLog =
 			    new BinaryTreeNode<String>("ln", theRoot.getLeft(), null);
-			BinaryTreeNode<String> product =
+			final BinaryTreeNode<String> product =
 			    new BinaryTreeNode<String>("*", theRoot.getRight(), naturalLog);
 			final BinaryTreeNode<String> eulersNum = new BinaryTreeNode<String>("e");
 			final BinaryTreeNode<String> newRoot =
@@ -227,22 +231,12 @@ public class Differentiator {
 			final BinaryTreeNode<String> diffRightNode = derive(newRoot.getRight(), theVarDiff);
 			derivative = new BinaryTreeNode<String>("*", newRoot, diffRightNode);
 		} else if (ExpressionParser.isFunction(theRoot.getElement())) {
-			BinaryTreeNode<String> diffRoot = derive(theRoot, theVarDiff);
+			final BinaryTreeNode<String> outerFunc =
+			    new BinaryTreeNode<String>(theRoot.getElement(), theVarDiff, null);
+			BinaryTreeNode<String> diffRoot = derive(outerFunc, theVarDiff);
 
-			/*
-			 * The below portion of the code is temporary.
-			 *
-			 * I will need to create a replace node method in binary tree node class. this is
-			 * due to my implementation for d/dx of cos(x) = (0 - sin(x)) where the root is a
-			 * minus sign rather than the sine function. i need to be able to change that
-			 * variable of differentiation ("x" in this example) into the inner portion of
-			 * the original function that the chain rule applies to.
-			 * ----------- PRACTICALLY only works for d/dx sin(cos(x)) ------------------------
-			 */
-
-			// updating the diffRoot to contain the the first half of the chain rule derivative
-			// new node (<diff outer function>, <inner function>, null)
-			diffRoot = new BinaryTreeNode<String>(diffRoot.getElement(), theRoot.getLeft(), null);
+			diffRoot = diffRoot.findAndReplace(theVarDiff.getElement(), diffRoot,
+			    theRoot.getLeft());
 			final BinaryTreeNode<String> diffInner = derive(theRoot.getLeft(), theVarDiff);
 			derivative = new BinaryTreeNode<String>("*", diffRoot, diffInner);
 		}
