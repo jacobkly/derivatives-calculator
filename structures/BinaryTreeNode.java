@@ -94,29 +94,6 @@ public class BinaryTreeNode<T> {
 	}
 
 	/**
-	 * Returns a new binary tree node after finding and replacing the node containing the
-	 * target element in the root node or its children with the specified replacing node.
-	 *
-	 * @param theTargetElement	the target element being searched for in this binary tree node
-	 * @param theRoot			the root node in which the target element is searched for
-	 * @param theReplaceNode	the node that will replace the node containing the target element
-	 * @return a binary tree node with the newly replaced node
-	 */
-	public BinaryTreeNode<T> findAndReplace(final T theTargetElement,
-	    final BinaryTreeNode<T> theRoot, final BinaryTreeNode<T> theReplaceNode) {
-		BinaryTreeNode<T> root = theRoot;
-		if (theRoot != null) {
-			if (theRoot.getElement() == theTargetElement) {
-				return theReplaceNode;
-			} else {
-				root.myLeft = findAndReplace(theTargetElement, root.myLeft, theReplaceNode);
-				root.myRight = findAndReplace(theTargetElement, root.myRight, theReplaceNode);
-			}
-		}
-		return root;
-	}
-
-	/**
 	 * Returns the number of non-null children of this node.
 	 *
 	 * @return the number of children of this node
@@ -151,11 +128,34 @@ public class BinaryTreeNode<T> {
 				}
 				if (result == false) {
 					if (myRight != null) {
-						myRight.contains(theTargetElement, myRight);
+						result = myRight.contains(theTargetElement, myRight);
 					}
 				}
 			}
 		}
 		return result;
+	}
+
+	/**
+	 * Returns a new binary tree node after finding and replacing the node containing the
+	 * target element in the root node or its children with the specified replacing node.
+	 *
+	 * @param theTargetElement	the target element being searched for in this binary tree node
+	 * @param theRoot			the root node in which the target element is searched for
+	 * @param theReplaceNode	the node that will replace the node containing the target element
+	 * @return a binary tree node with the newly replaced node
+	 */
+	public BinaryTreeNode<T> findAndReplace(final T theTargetElement,
+	    final BinaryTreeNode<T> theRoot, final BinaryTreeNode<T> theReplaceNode) {
+		BinaryTreeNode<T> root = theRoot;
+		if (theRoot != null) {
+			if (theRoot.getElement() == theTargetElement) {
+				return theReplaceNode;
+			} else {
+				root.myLeft = findAndReplace(theTargetElement, root.myLeft, theReplaceNode);
+				root.myRight = findAndReplace(theTargetElement, root.myRight, theReplaceNode);
+			}
+		}
+		return root;
 	}
 }
