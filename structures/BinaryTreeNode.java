@@ -4,11 +4,14 @@
 
 package structures;
 
+import java.util.LinkedList;
+import java.util.Queue;
+
 /**
  * BinaryTreeNode represents a node in an binary tree with a left and right child.
  *
  * @author Jacob Klymenko
- * @version 1.1
+ * @version 1.2
  *
  * @param <T> the generic type placeholder
  */
@@ -100,12 +103,34 @@ public class BinaryTreeNode<T> {
 	 */
 	public int numChildren() {
 		int children = 0;
+
+		// BFS approach
+		Queue<BinaryTreeNode<T>> queue = new LinkedList<>();
 		if (myLeft != null) {
-			children = 1 + myLeft.numChildren();
+			queue.add(myLeft);
 		}
 		if (myRight != null) {
-			children = 1 + children + myRight.numChildren();
+			queue.add(myRight);
 		}
+		while (!queue.isEmpty()) {
+			children++;
+			BinaryTreeNode<T> node = queue.poll();
+			if (node.getLeft() != null) {
+				queue.add(node.getLeft());
+			}
+			if (node.getRight() != null) {
+				queue.add(node.getRight());
+			}
+		}
+
+		// recursive approach
+		// if (myLeft != null) {
+		// children = 1 + myLeft.numChildren();
+		// }
+		// if (myRight != null) {
+		// children = 1 + children + myRight.numChildren();
+		// }
+
 		return children;
 	}
 
@@ -158,4 +183,32 @@ public class BinaryTreeNode<T> {
 		}
 		return root;
 	}
+
+	// unneeded height method for now
+
+	// /**
+	// * Returns the number of levels of children this node is linked to.
+	// *
+	// * @return the number of levels of children this node is linked to
+	// */
+	// public int height() {
+	// if (myLeft == null && myRight == null) {
+	// return 0;
+	// }
+	// return Math.max(heightNode(myLeft), heightNode(myRight));
+	// }
+	//
+	// /**
+	// * Private recursive helper method returning the number of levels of children this node
+	// * is linked to.
+	// *
+	// * @param theRoot the root to find the height of
+	// * @return the number of levels of children this node is linked to
+	// */
+	// private int heightNode(final BinaryTreeNode<T> theRoot) {
+	// if (theRoot == null) {
+	// return 0;
+	// }
+	// return Math.max(heightNode(theRoot.getLeft()), heightNode(theRoot.getRight())) + 1;
+	// }
 }
