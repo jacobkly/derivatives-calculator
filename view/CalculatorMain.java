@@ -42,7 +42,7 @@ public class CalculatorMain {
 	 * @param theArgs command line arguments - ignored
 	 */
 	public static void main(String[] args) {
-		System.out.println("derivates calculator... STAAARRT!!!");
+		System.out.println("single variable derivatives calculator... STAAARRT!!!");
 		ExpressionParser.setValidFunctions();
 		try (Scanner console = new Scanner(System.in)) {
 			for (;;) {
@@ -76,7 +76,7 @@ public class CalculatorMain {
 				    Differentiator.derive(tree.getNode(), myDiffVar);
 				// final String output = Differentiator.treeToString(outputTree);
 				System.out.println("\n" + myUserInput + " = " +
-				    Differentiator.treeNodeToString(outputTreeNode));
+				    Differentiator.treeNodeToString(outputTreeNode, 0));
 			} catch (final Exception error) {
 				System.out.println("evaluation error has occured!");
 			}
