@@ -113,6 +113,7 @@ public class Differentiator {
 						derivative = exponentRule(theRoot, theVarDiff);
 					}
 				} else { // else apply power rule
+					System.out.println(2);
 					final BinaryTreeNode<String> base =
 					    new BinaryTreeNode<String>("*", theRoot.getRight(), theRoot.getLeft());
 					final BinaryTreeNode<String> one = new BinaryTreeNode<String>("1");
@@ -143,9 +144,9 @@ public class Differentiator {
 		if (rootElement.contains("_")) {
 			final BinaryTreeNode<String> base =
 			    new BinaryTreeNode<String>(rootElement.substring(4));
-			final BinaryTreeNode<String> log = new BinaryTreeNode<String>("log", base, null);
+			final BinaryTreeNode<String> naturalLog = new BinaryTreeNode<String>("ln", base, null);
 			final BinaryTreeNode<String> variableLog =
-			    new BinaryTreeNode<String>("*", theVarDiff, log);
+			    new BinaryTreeNode<String>("*", theVarDiff, naturalLog);
 			derivative = new BinaryTreeNode<String>("/", one, variableLog);
 		} else if (!rootElement.contains("_")) { // no specified base value -- 1 / <theVarDiff>
 			derivative = new BinaryTreeNode<String>("/", one, theVarDiff);
@@ -206,6 +207,14 @@ public class Differentiator {
 		return derivative;
 	}
 
+	/**
+	 * Returns a binary tree node after applying the derivative exponent rule to the specified
+	 * expression represented in a binary tree node.
+	 *
+	 * @param theRoot		the root node representing the expression being derived
+	 * @param theVarDiff	the chosen variable of differentiation represented by a node
+	 * @return a binary tree node representing the derivative of the expression
+	 */
 	private static BinaryTreeNode<String> exponentRule(final BinaryTreeNode<String> theRoot,
 	    final BinaryTreeNode<String> theVarDiff) {
 		final BinaryTreeNode<String> naturalLog =
@@ -215,6 +224,14 @@ public class Differentiator {
 		return derivative;
 	}
 
+	/**
+	 * Returns a binary tree node after applying the derivative chain rule to the specified
+	 * expression represented in a binary tree node.
+	 *
+	 * @param theRoot		the root node representing the expression being derived
+	 * @param theVarDiff	the chosen variable of differentiation represented by a node
+	 * @return a binary tree node representing the derivative of the expression
+	 */
 	private static BinaryTreeNode<String> chainRule(final BinaryTreeNode<String> theRoot,
 	    final BinaryTreeNode<String> theVarDiff) {
 		BinaryTreeNode<String> derivative = null;
@@ -262,30 +279,39 @@ public class Differentiator {
 	 * Returns a String representing the binary tree root node and the root's children as a
 	 * mathematical expression, recursively.
 	 *
-	 * @param theRoot the root node of this binary tree
+	 * Maintains expression readability by adding parentheses surrounding chunks of the tree
+	 * nodes and the nodes children (unless at the direct root node or when the node does not
+	 * have non-null children).
+	 *
+	 * @param theRoot 		the root node of this binary tree
+	 * @param theTracker	the method to track the recursive call position in the call stack
 	 * @return a String representing the binary tree as an expression
 	 */
-	public static String treeNodeToString(final BinaryTreeNode<String> theRoot) {
+	public static String treeNodeToString(final BinaryTreeNode<String> theRoot,
+	    final int theTracker) {
 		String result = "";
-		/*
-		 * Improves final expression readability by adding parentheses surrounding chunks
-		 * of the tree. Still needs to be tested for readability. Potentially add a second
-		 * parameter keeping track if the recursive call is within a subtree or not. This can
-		 * remove unneeded parentheses.
-		 *
-		 * Operator Example: "(<operand> <operator> <operand>)"
-		 * Function Example: "(<function>(<operand>))"
-		 */
+		int tracker = theTracker;
+		if (theTracker == 0) {
+			tracker = 1;
+		}
 		if (theRoot != null) { // one base case - making sure caller does not include null node
+			// checks to see if a left parenthesis is needed
+			if (theTracker == 1 && theRoot.numChildren() != 0) {
+				result += "(";
+			}
 			final String rootElement = theRoot.getElement();
 			if (isOperator(rootElement)) {
-				result = "(" + treeNodeToString(theRoot.getLeft()) + " " +
-				    rootElement + " " + treeNodeToString(theRoot.getRight()) + ")";
+				result += treeNodeToString(theRoot.getLeft(), tracker) + " " +
+				    rootElement + " " + treeNodeToString(theRoot.getRight(), tracker);
 			} else if (ExpressionParser.isFunction(rootElement)) {
 				// WRONG - later implement the first pair of parentheses when inside the subtree
-				result = rootElement + "(" + treeNodeToString(theRoot.getLeft()) + ")";
+				result += rootElement + "(" + treeNodeToString(theRoot.getLeft(), tracker) + ")";
 			} else { // second (real) base case - root is a constant or var of differentiation
-				result = rootElement;
+				result += rootElement;
+			}
+			// checks to see if a right parenthesis is needed
+			if (theTracker == 1 && theRoot.numChildren() != 0) {
+				result += ")";
 			}
 		}
 		return result;
