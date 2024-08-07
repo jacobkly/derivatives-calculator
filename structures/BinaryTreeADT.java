@@ -24,31 +24,6 @@ public interface BinaryTreeADT<T> {
 	int size();
 
 	/**
-	 * Returns the height of this binary tree.
-	 *
-	 * @return the height of this binary tree
-	 */
-	int getHeight();
-
-	/**
-	 * Returns true if the target element is in the binary tree; otherwise false.
-	 *
-	 * @param theTargetElement the target element being searched for in this binary tree
-	 * @return true if the target element is in the binary tree; otherwise false
-	 */
-	boolean contains(T theTargetElement);
-
-	/**
-	 * Returns a reference to the target element if it is found in this binary tree. Throws an
-	 * ElementNotFoundException if the specified target element is not found in this binary tree.
-	 *
-	 * @param theTargetElement the target element being searched for in this binary tree
-	 * @return a reference to the target element
-	 * @throws ElementNotFoundException if the element is not in this binary tree
-	 */
-	T find(T theTargetElement);
-
-	/**
 	 * Returns the node of this binary tree's root.
 	 *
 	 * @return the node of this binary tree's root

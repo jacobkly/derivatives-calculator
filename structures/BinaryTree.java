@@ -6,9 +6,7 @@ package structures;
 
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.NoSuchElementException;
-import java.util.Queue;
 
 /**
  * BinaryTree implements the BinaryTreeADT interface.
@@ -63,90 +61,6 @@ public class BinaryTree<T> implements BinaryTreeADT<T>, Iterable<T> {
 			result = 0;
 		} else {
 			result = 1 + myRoot.numChildren();
-		}
-		return result;
-	}
-
-	// NOT TESTED
-	@Override
-	public int getHeight() {
-		int height = 0;
-		Queue<BinaryTreeNode<T>> queue = new LinkedList<>();
-		queue.add(myRoot);
-
-		while (!queue.isEmpty()) {
-			int count = queue.size();
-			height++;
-			while (count > 0) {
-				BinaryTreeNode<T> node = queue.poll();
-				if (node.getLeft() != null) {
-					queue.add(node.getLeft());
-				}
-				if (node.getRight() != null) {
-					queue.add(node.getRight());
-				}
-				count--;
-			}
-		}
-		return height;
-	}
-
-	// NOT TESTED
-	@Override
-	public boolean contains(final T theTargetElement) {
-		if (myRoot.getElement() == theTargetElement) {
-			return true;
-		}
-		boolean result = false;
-		Queue<BinaryTreeNode<T>> queue = new LinkedList<>();
-		queue.add(myRoot);
-
-		while (!queue.isEmpty()) {
-			int count = queue.size();
-			while (count > 0) {
-				BinaryTreeNode<T> node = queue.poll();
-				if (node.getLeft().getElement() == theTargetElement) {
-					result = true;
-				} else {
-					queue.add(node.getLeft());
-				}
-				if (node.getRight().getElement() == theTargetElement) {
-					result = true;
-				} else {
-					queue.add(node.getRight());
-				}
-				count--;
-			}
-		}
-		return result;
-	}
-
-	// NOT TESTED
-	@Override
-	public T find(final T theTargetElement) {
-		if (myRoot.getElement() == theTargetElement) {
-			return myRoot.getElement();
-		}
-		T result = null;
-		Queue<BinaryTreeNode<T>> queue = new LinkedList<>();
-		queue.add(myRoot);
-
-		while (!queue.isEmpty()) {
-			int count = queue.size();
-			while (count > 0) {
-				BinaryTreeNode<T> node = queue.poll();
-				if (node.getLeft().getElement() == theTargetElement) {
-					result = node.getLeft().getElement();
-				} else {
-					queue.add(node.getLeft());
-				}
-				if (node.getRight().getElement() == theTargetElement) {
-					result = node.getRight().getElement();
-				} else {
-					queue.add(node.getRight());
-				}
-				count--;
-			}
 		}
 		return result;
 	}
