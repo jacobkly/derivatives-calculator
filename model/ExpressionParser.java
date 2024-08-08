@@ -1,5 +1,5 @@
 /**
- * ExpressionParser - Derivates Calculator
+ * ExpressionParser - Derivatives Calculator
  */
 
 package model;
@@ -36,12 +36,19 @@ public class ExpressionParser {
 	 * Sets all the valid mathematical functions this calculator accepts from the user.
 	 */
 	public static void setValidFunctions() {
+		myFunctions.add("abs");
 		myFunctions.add("sin");
 		myFunctions.add("cos");
 		myFunctions.add("tan");
 		myFunctions.add("sec");
 		myFunctions.add("csc");
 		myFunctions.add("cot");
+		myFunctions.add("arcsin");
+		myFunctions.add("arccos");
+		myFunctions.add("arctan");
+		myFunctions.add("arcsec");
+		myFunctions.add("arccsc");
+		myFunctions.add("arccot");
 		myFunctions.add("log");
 		myFunctions.add("ln");
 	}
@@ -86,7 +93,7 @@ public class ExpressionParser {
 		if (track != userInput.length()) {
 			result.add(userInput.substring(track));
 		}
-		// System.out.println(result);
+		System.out.println(result);
 		return result;
 	}
 
@@ -161,14 +168,22 @@ public class ExpressionParser {
 	 * @return true if the string is a function; otherwise false
 	 */
 	public static boolean isFunction(final String theString) {
+		boolean result = false;
 		final int length = theString.length();
-		if (length > 1 && myFunctions.contains(theString.substring(0, length))) {
-			return true;
-		} else if (length > 4 && myFunctions.contains(theString.substring(0, 3))) {
-			return true;
+		if (length == 2 && myFunctions.contains(theString)) { // ln
+			result = true;
+		} else if (length == 3 && myFunctions.contains(theString)) { // all normal trig and log
+			result = true;
+		} else if (length > 4) {
+			if (myFunctions.contains(theString.substring(0, 3))) { // log_<base>
+				result = true;
+			} else if (myFunctions.contains(theString)) { // inverse trig
+				result = true;
+			}
 		} else {
-			return false;
+			result = false;
 		}
+		return result;
 	}
 
 	/**
