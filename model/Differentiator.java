@@ -43,6 +43,8 @@ public class Differentiator {
 				} else {
 					if (rootElement.equals("ln") || rootElement.substring(0, 3).equals("log")) {
 						derivative = deriveLog(theRoot, theVarDiff);
+					} else if (rootElement.substring(0, 3).equals("arc")) {
+						derivative = deriveInverseTrig(theRoot, theVarDiff);
 					} else {
 						derivative = deriveTrig(theRoot, theVarDiff);
 					}
@@ -168,6 +170,8 @@ public class Differentiator {
 		    new BinaryTreeNode<String>("sin", theVarDiff, null);
 		final BinaryTreeNode<String> secant =
 		    new BinaryTreeNode<String>("sec", theVarDiff, null);
+		final BinaryTreeNode<String> cosecant =
+		    new BinaryTreeNode<String>("csc", theVarDiff, null);
 		final BinaryTreeNode<String> zero = new BinaryTreeNode<String>("0");
 		final BinaryTreeNode<String> two = new BinaryTreeNode<String>("2");
 		BinaryTreeNode<String> derivative = null;
@@ -177,10 +181,10 @@ public class Differentiator {
 			case "sin": // cos(<theVariable>)
 				derivative = new BinaryTreeNode<String>("cos", theVarDiff, null);
 				break;
-			case "cos": // 0 - (<theVariable>)
+			case "cos": // 0 - sin(<theVariable>)
 				derivative = new BinaryTreeNode<String>("-", zero, sine);
 				break;
-			case "tan": // (sec(<theVariable>)) ^ 2
+			case "tan": // sec(<theVariable>) ^ 2
 				derivative = new BinaryTreeNode<String>("^", secant, two);
 				break;
 			case "sec": // (sec(x)) * (tan(x))
@@ -189,19 +193,81 @@ public class Differentiator {
 				derivative = new BinaryTreeNode<String>("*", secant, tangent);
 				break;
 			case "csc": // 0 - ((csc(x)) * (cot(x)))
-				final BinaryTreeNode<String> cosecant =
-				    new BinaryTreeNode<String>("csc", theVarDiff, null);
 				final BinaryTreeNode<String> cotangent =
 				    new BinaryTreeNode<String>("cot", theVarDiff, null);
 				final BinaryTreeNode<String> cscCot =
 				    new BinaryTreeNode<String>("*", cosecant, cotangent);
 				derivative = new BinaryTreeNode<String>("-", zero, cscCot);
 				break;
-			case "cot": // -1 / ((sin(x)) ^ 2)
-				final BinaryTreeNode<String> negOne = new BinaryTreeNode<String>("-1");
-				final BinaryTreeNode<String> sineSquared =
-				    new BinaryTreeNode<String>("^", sine, two);
-				derivative = new BinaryTreeNode<String>("/", negOne, sineSquared);
+			case "cot": // 0 - (csc(x) ^ 2)
+
+				final BinaryTreeNode<String> exponent =
+				    new BinaryTreeNode<String>("^", cosecant, two);
+				derivative = new BinaryTreeNode<String>("-", zero, exponent);
+				break;
+		}
+		return derivative;
+	}
+
+	/**
+	 * Returns a binary tree node representing the derivative of simple inverse trigonometric
+	 * functions that require no chain rule.
+	 *
+	 * @param theRoot		the root node representing the inverse trigonometric function
+	 * 						being derived
+	 * @param theVarDiff	the chosen variable of differentiation represented by a node
+	 * @return a binary tree node representing the derivative of the inverse trigonometric function
+	 */
+	private static BinaryTreeNode<String> deriveInverseTrig(
+	    final BinaryTreeNode<String> theRoot, final BinaryTreeNode<String> theVarDiff) {
+		final BinaryTreeNode<String> zero = new BinaryTreeNode<String>("0");
+		final BinaryTreeNode<String> one = new BinaryTreeNode<String>("1");
+		final BinaryTreeNode<String> two = new BinaryTreeNode<String>("2");
+		final BinaryTreeNode<String> half =
+		    new BinaryTreeNode<String>("/", one, two);
+		final BinaryTreeNode<String> varSquared =
+		    new BinaryTreeNode<String>("^", theVarDiff, two);
+		final BinaryTreeNode<String> oneMinusVar =
+		    new BinaryTreeNode<String>("-", one, varSquared);
+		final BinaryTreeNode<String> varPlusOne =
+		    new BinaryTreeNode<String>("+", varSquared, one);
+		final BinaryTreeNode<String> varMinusOne =
+		    new BinaryTreeNode<String>("-", varSquared, one);
+		final BinaryTreeNode<String> sqrtOneMinusVar =
+		    new BinaryTreeNode<String>("^", oneMinusVar, half);
+		final BinaryTreeNode<String> sqrtVarMinusOne =
+		    new BinaryTreeNode<String>("^", varMinusOne, half);
+		final BinaryTreeNode<String> absoluteVar =
+		    new BinaryTreeNode<String>("abs", theVarDiff, null);
+		final BinaryTreeNode<String> absoVarProduct =
+		    new BinaryTreeNode<String>("*", absoluteVar, sqrtVarMinusOne);
+		BinaryTreeNode<String> derivative = null;
+
+		final String rootElement = theRoot.getElement();
+		switch (rootElement) {
+			case "arcsin": // 1 / ((1 - (x ^ 2)) ^ (1 / 2))
+				derivative = new BinaryTreeNode<String>("/", one, sqrtOneMinusVar);
+				break;
+			case "arccos": // 0 - (1 / ((1 - (x ^ 2)) ^ (1 / 2)))
+				final BinaryTreeNode<String> arcsinDiff =
+				    new BinaryTreeNode<String>("/", one, sqrtOneMinusVar);
+				derivative = new BinaryTreeNode<String>("-", zero, arcsinDiff);
+				break;
+			case "arctan": // 1 / ((x ^ 2) + 1)
+				derivative = new BinaryTreeNode<String>("/", one, varPlusOne);
+				break;
+			case "arcsec": // 1 / (abs(x) * (((x ^ 2) - 1) ^ (1 / 2))
+				derivative = new BinaryTreeNode<String>("/", one, absoVarProduct);
+				break;
+			case "arccsc": // 0 - (1 / (abs(x) * (((x ^ 2) - 1) ^ (1 / 2)))
+				final BinaryTreeNode<String> arcsecDiff =
+				    new BinaryTreeNode<String>("/", one, absoVarProduct);
+				derivative = new BinaryTreeNode<String>("-", zero, arcsecDiff);
+				break;
+			case "arccot": // 0 - (1 / ((x ^ 2) + 1))
+				final BinaryTreeNode<String> arctanDiff =
+				    new BinaryTreeNode<String>("/", one, varPlusOne);
+				derivative = new BinaryTreeNode<String>("-", zero, arctanDiff);
 				break;
 		}
 		return derivative;
@@ -296,7 +362,7 @@ public class Differentiator {
 		}
 		if (theRoot != null) { // one base case - making sure caller does not include null node
 			// checks to see if a left parenthesis is needed
-			if (theTracker == 1 && theRoot.numChildren() != 0) {
+			if (theTracker == 1 && theRoot.numChildren() > 1) {
 				result += "(";
 			}
 			final String rootElement = theRoot.getElement();
@@ -310,7 +376,7 @@ public class Differentiator {
 				result += rootElement;
 			}
 			// checks to see if a right parenthesis is needed
-			if (theTracker == 1 && theRoot.numChildren() != 0) {
+			if (theTracker == 1 && theRoot.numChildren() > 1) {
 				result += ")";
 			}
 		}
