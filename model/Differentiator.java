@@ -10,9 +10,21 @@ import structures.BinaryTreeNode;
  * Differentiator differentiates a binary tree representing a symbolic mathematical expression.
  *
  * @author Jacob Klymenko
- * @version 2.1
+ * @version 2.2
  */
 public class Differentiator {
+
+	/** A String representing the variable other than the variable of differentiation. */
+	private static String myNonVarDiffElement;
+
+	/** A BinaryTreeNode representing the variable other than the variable of differentiation. */
+	private static BinaryTreeNode<String> myNonVarDiffNode = null;
+
+	/**
+	 * A BinaryTreeNode representing Leibniz's notation containing the variable other than the
+	 * variable of differentiation
+	 */
+	private static BinaryTreeNode<String> myNonVarDiffLeibniz = null;
 
 	/** A private constructor to inhibit external instantiation. */
 	private Differentiator() {
@@ -30,6 +42,10 @@ public class Differentiator {
 	public static BinaryTreeNode<String> derive(final BinaryTreeNode<String> theRoot,
 	    final BinaryTreeNode<String> theVarDiff) {
 		// System.out.println("\n" + treeToString(theRoot));
+		myNonVarDiffElement = null;
+		myNonVarDiffNode = null;
+		myNonVarDiffLeibniz = null;
+		setNonVarDiffComponents(theRoot, theVarDiff);
 		BinaryTreeNode<String> derivative = null;
 
 		if (theRoot != null) { // first base case - cannot derive null
@@ -38,26 +54,19 @@ public class Differentiator {
 				derivative = deriveOperator(theRoot, theVarDiff);
 			} else if (ExpressionParser.isFunction(rootElement)) {
 				final String leftNodeElem = theRoot.getLeft().getElement();
-				final String nonVarDiffElement = getNonVarDiffElement(theRoot, theVarDiff);
-				System.out.println(nonVarDiffElement);
-				final BinaryTreeNode<String> nonVarDiffNode =
-				    new BinaryTreeNode<String>(nonVarDiffElement);
 				if (ExpressionParser.isFunction(leftNodeElem) || isOperator(leftNodeElem)) {
 					derivative = chainRule(theRoot, theVarDiff);
-				} else if (theRoot.getLeft().getElement().equals(nonVarDiffElement)) {
+				} else if (theRoot.getLeft().getElement().equals(myNonVarDiffElement)) {
 					BinaryTreeNode<String> funcDiff = null;
 					if (rootElement.equals("ln") || rootElement.substring(0, 3).equals("log")) {
-						funcDiff = deriveLog(theRoot, nonVarDiffNode);
+						funcDiff = deriveLog(theRoot, myNonVarDiffNode);
 					} else if (rootElement.substring(0, 3).equals("arc")) {
-						funcDiff = deriveInverseTrig(theRoot, nonVarDiffNode);
+						funcDiff = deriveInverseTrig(theRoot, myNonVarDiffNode);
 					} else {
-						funcDiff = deriveTrig(theRoot, nonVarDiffNode);
+						funcDiff = deriveTrig(theRoot, myNonVarDiffNode);
 					}
-					final BinaryTreeNode<String> nonVarDiffLeibniz =
-					    new BinaryTreeNode<String>("d" + nonVarDiffElement + "/d" +
-					        theVarDiff.getElement());
-					derivative = new BinaryTreeNode<String>("*", nonVarDiffLeibniz, funcDiff);
-				} else {
+					derivative = new BinaryTreeNode<String>("*", myNonVarDiffLeibniz, funcDiff);
+				} else if (theRoot.getLeft().getElement().equals(theVarDiff.getElement())) {
 					if (rootElement.equals("ln") || rootElement.substring(0, 3).equals("log")) {
 						derivative = deriveLog(theRoot, theVarDiff);
 					} else if (rootElement.substring(0, 3).equals("arc")) {
@@ -65,6 +74,8 @@ public class Differentiator {
 					} else {
 						derivative = deriveTrig(theRoot, theVarDiff);
 					}
+				} else {
+					derivative = new BinaryTreeNode<String>("0");
 				}
 			} else { // second (real) base case - a constant or contains variable
 				final String varDiffElement = theVarDiff.getElement();
@@ -79,7 +90,7 @@ public class Differentiator {
 					}
 					// there is another var other than the var of diff
 				} else if (rootElement.matches(".*[a-zA-Z&&[^" + varDiffElement + "]].*")) {
-					derivative = new BinaryTreeNode<String>("dy/dx");
+					derivative = myNonVarDiffLeibniz;
 				} else { // only contains a constant
 					derivative = new BinaryTreeNode<String>("0");
 				}
@@ -101,6 +112,7 @@ public class Differentiator {
 		final String operator = theRoot.getElement();
 		final BinaryTreeNode<String> diffLeftNode = derive(theRoot.getLeft(), theVarDiff);
 		final BinaryTreeNode<String> diffRightNode = derive(theRoot.getRight(), theVarDiff);
+
 		final BinaryTreeNode<String> leftProduct =
 		    new BinaryTreeNode<String>("*", diffLeftNode, theRoot.getRight());
 		final BinaryTreeNode<String> rightProduct =
@@ -125,45 +137,59 @@ public class Differentiator {
 				derivative = new BinaryTreeNode<String>("+", leftProduct, rightProduct);
 				break;
 			case "^":
-				final String varDiffElement = theVarDiff.getElement();
-				// filtering for the second variable in the expression.
-				final String nonVarDiffElement = getNonVarDiffElement(theRoot, theVarDiff);
-				// checking if chain/exponent rules need to be applied
-				if (theRoot.getRight().contains(varDiffElement, theRoot.getRight())) {
-					// apply non-derivative exponent rule and chain rule
-					if (theRoot.getLeft().contains(varDiffElement, theRoot.getLeft())) {
-						derivative = chainRule(theRoot, theVarDiff);
-					} else { // apply derivative exponent rule
-						derivative = exponentRule(theRoot, theVarDiff);
-					}
-					// there is another variable other than the var of diff
-				} else if (theRoot.contains(nonVarDiffElement, theRoot)) {
-					final BinaryTreeNode<String> dydx = new BinaryTreeNode<String>("dy/dx");
-					final BinaryTreeNode<String> notVarDiff =
-					    new BinaryTreeNode<String>(nonVarDiffElement);
-					final boolean left = theRoot.getLeft().contains(nonVarDiffElement,
-					    theRoot.getLeft());
-					final boolean right = theRoot.getRight().contains(nonVarDiffElement,
-					    theRoot.getRight());
-					if (left && right) { // chain rule is needed
-						derivative =
-						    new BinaryTreeNode<String>("*", dydx,
-						        chainRule(theRoot, notVarDiff));
-					} else if (!left && right) { // derivative exponent rule is needed
-						derivative =
-						    new BinaryTreeNode<String>("*", dydx,
-						        exponentRule(theRoot, notVarDiff));
-					} else { // power rule is needed
-						final BinaryTreeNode<String> powerRule = powerRule(theRoot, notVarDiff);
-						derivative = new BinaryTreeNode<String>("*", dydx, powerRule);
-					}
-				} else { // else apply simple power rule
-					derivative = powerRule(theRoot, theVarDiff);
-				}
-				break;
+				derivative = deriveExponent(theRoot, theVarDiff);
 		}
 		return derivative;
+	}
 
+	/**
+	 * Helper method to take the derivative of an expression whose main mathematical operator
+	 * is an exponent sign.
+	 *
+	 * @param theRoot		the root node representing the expression segment being derived
+	 * @param theVarDiff	the chosen variable of differentiation represented by a node
+	 * @return a binary tree node representing the derivative of the root's equivalent expression
+	 */
+	private static BinaryTreeNode<String> deriveExponent(final BinaryTreeNode<String> theRoot,
+	    final BinaryTreeNode<String> theVarDiff) {
+		BinaryTreeNode<String> derivative = null;
+		// necessary components to filter out what rules need to be applied
+		final String varDiffElement = theVarDiff.getElement();
+		final boolean varDiffLeftNode = theRoot.getLeft().contains(varDiffElement,
+		    theRoot.getLeft());
+		final boolean varDiffRightNode = theRoot.getRight().contains(varDiffElement,
+		    theRoot.getRight());
+		final boolean nonVarDiffLeftNode = theRoot.getLeft().contains(myNonVarDiffElement,
+		    theRoot.getLeft());
+		final boolean nonVarDiffRightNode = theRoot.getRight().contains(myNonVarDiffElement,
+		    theRoot.getRight());
+
+		if (!varDiffLeftNode && !nonVarDiffLeftNode) { // left side contains only a constant
+			if (!varDiffRightNode && !nonVarDiffRightNode) { // both sides are constants\
+				System.out.println("second error --- " + myNonVarDiffNode.getElement() + " --- "
+				    + nonVarDiffRightNode);
+				derivative = new BinaryTreeNode<String>("0");
+			} else if (varDiffRightNode && !nonVarDiffRightNode) { // right side contains var diff
+				derivative = chainRule(theRoot, theVarDiff);
+			} else if (!varDiffRightNode && nonVarDiffRightNode) { // right side contains other var
+				final BinaryTreeNode<String> chainRule =
+				    chainRule(theRoot, myNonVarDiffNode);
+				derivative = new BinaryTreeNode<String>("*", myNonVarDiffLeibniz, chainRule);
+			} else { // right side contains two different variables
+				derivative = chainRule(theRoot, theVarDiff);
+			}
+		} else if ((varDiffLeftNode || nonVarDiffLeftNode) &&
+		    (varDiffRightNode || nonVarDiffRightNode)) { // both sides contain some variable
+			    derivative = chainRule(theRoot, theVarDiff);
+		    } else { // left side contains a variable and right side contains a constant
+			    if (varDiffLeftNode) {
+				    derivative = powerRule(theRoot, theVarDiff);
+			    } else {
+				    final BinaryTreeNode<String> powerRule = powerRule(theRoot, myNonVarDiffNode);
+				    derivative = new BinaryTreeNode<String>("*", myNonVarDiffLeibniz, powerRule);
+			    }
+		    }
+		return derivative;
 	}
 
 	/**
@@ -238,7 +264,6 @@ public class Differentiator {
 				derivative = new BinaryTreeNode<String>("-", zero, cscCot);
 				break;
 			case "cot": // 0 - (csc(x) ^ 2)
-
 				final BinaryTreeNode<String> exponent =
 				    new BinaryTreeNode<String>("^", cosecant, two);
 				derivative = new BinaryTreeNode<String>("-", zero, exponent);
@@ -258,6 +283,7 @@ public class Differentiator {
 	 */
 	private static BinaryTreeNode<String> deriveInverseTrig(
 	    final BinaryTreeNode<String> theRoot, final BinaryTreeNode<String> theVarDiff) {
+		// necessary repetitive node components needed to build the new differentiated expression
 		final BinaryTreeNode<String> zero = new BinaryTreeNode<String>("0");
 		final BinaryTreeNode<String> one = new BinaryTreeNode<String>("1");
 		final BinaryTreeNode<String> two = new BinaryTreeNode<String>("2");
@@ -312,23 +338,6 @@ public class Differentiator {
 	}
 
 	/**
-	 * Returns a binary tree node after applying the derivative exponent rule to the specified
-	 * expression represented in a binary tree node.
-	 *
-	 * @param theRoot		the root node representing the expression being derived
-	 * @param theVarDiff	the chosen variable of differentiation represented by a node
-	 * @return a binary tree node representing the derivative of the expression
-	 */
-	private static BinaryTreeNode<String> exponentRule(final BinaryTreeNode<String> theRoot,
-	    final BinaryTreeNode<String> theVarDiff) {
-		final BinaryTreeNode<String> naturalLog =
-		    new BinaryTreeNode<String>("ln", theRoot.getLeft(), null);
-		final BinaryTreeNode<String> derivative =
-		    new BinaryTreeNode<String>("*", theRoot, naturalLog);
-		return derivative;
-	}
-
-	/**
 	 * Returns a binary tree node after applying the derivative chain rule to the specified
 	 * expression represented in a binary tree node.
 	 *
@@ -355,7 +364,6 @@ public class Differentiator {
 			final BinaryTreeNode<String> outerFunc =
 			    new BinaryTreeNode<String>(theRoot.getElement(), theVarDiff, null);
 			BinaryTreeNode<String> diffRoot = derive(outerFunc, theVarDiff);
-
 			diffRoot = diffRoot.findAndReplace(theVarDiff.getElement(), diffRoot,
 			    theRoot.getLeft());
 			final BinaryTreeNode<String> diffInner = derive(theRoot.getLeft(), theVarDiff);
@@ -398,27 +406,31 @@ public class Differentiator {
 	}
 
 	/**
-	 * Returns a String representing the first variable in the specified binary tree node root
-	 * other than the specified variable of differentiation.
+	 * Sets the important global variables representing different forms of a variable in the
+	 * specified binary tree node root, other than the specified variable of differentiation.
 	 *
 	 * @param theRoot		the root node of the expression
 	 * @param theVarDiff	the chosen variable of differentiation represented by a node
-	 * @return a String representing a variable other than the variable of differentiation
 	 */
-	private static String getNonVarDiffElement(final BinaryTreeNode<String> theRoot,
+	public static void setNonVarDiffComponents(final BinaryTreeNode<String> theRoot,
 	    final BinaryTreeNode<String> theVarDiff) {
-		String result = "";
-
-		if (ExpressionParser.isFunction(theRoot.getElement())) {
-			return getNonVarDiffElement(theRoot.getLeft(), theVarDiff);
+		if (myNonVarDiffElement == null) {
+			if (ExpressionParser.isFunction(theRoot.getElement())) {
+				setNonVarDiffComponents(theRoot.getLeft(), theVarDiff);
+			} else {
+				final String varDiffElem = theVarDiff.getElement();
+				myNonVarDiffElement = treeNodeToString(theRoot, 0).replaceAll("[^a-zA-Z&&[^" +
+				    varDiffElem + "]]", "");
+				// System.out.println(myNonVarDiffElement + " --- hello there");
+				if (myNonVarDiffElement.length() > 0) {
+					myNonVarDiffElement = Character.toString(myNonVarDiffElement.charAt(0));
+				}
+				myNonVarDiffNode = new BinaryTreeNode<String>(myNonVarDiffElement);
+				myNonVarDiffLeibniz = new BinaryTreeNode<String>("d" + myNonVarDiffElement +
+				    "/d" + theVarDiff.getElement());
+			}
 		}
-		final String varDiffElem = theVarDiff.getElement();
-		result = treeNodeToString(theRoot, 0).replaceAll("[^a-zA-Z&&[^" +
-		    varDiffElem + "]]", "");
-		if (result.length() > 0) {
-			result = Character.toString(result.charAt(0));
-		}
-		return result;
+		// System.out.println(myNonVarDiffElement + "what");
 	}
 
 	/**
