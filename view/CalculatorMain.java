@@ -5,7 +5,9 @@
 package view;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Scanner;
+import java.util.Set;
 import model.Differentiator;
 import model.ExpressionParser;
 import structures.BinaryTree;
@@ -15,7 +17,7 @@ import structures.BinaryTreeNode;
  * A console-based program to perform symbolic differentiation on mathematical expressions.
  *
  * @author Jacob Klymenko
- * @version 3.0
+ * @version 3.2
  */
 public class CalculatorMain {
 
@@ -29,7 +31,10 @@ public class CalculatorMain {
 	private static boolean myUserQuitOption = false;
 
 	/** The variable of differentiation represented by a node. */
-	private static BinaryTreeNode<String> myDiffVar = null;
+	private static BinaryTreeNode<String> myVarDiff = null;
+
+	/** Whether user input is valid or not, depending on the number of variables in input. */
+	private static boolean myInputVariableValidity = true;
 
 	/** A private constructor to inhibit external instantiation. */
 	private CalculatorMain() {
@@ -50,6 +55,10 @@ public class CalculatorMain {
 				if (myUserQuitOption) {
 					break;
 				}
+				if (!myInputVariableValidity) {
+					System.out.println("\nplease include less than three variables in your " +
+					    "input expression.");
+				}
 			}
 		}
 		System.out.println("\nthank you for trying out this calculator!");
@@ -66,15 +75,14 @@ public class CalculatorMain {
 		System.out.print(prompt);
 		myUserInput = theConsole.nextLine();
 		final BinaryTree<String> tree = getTree(theConsole, prompt);
-		if (myUserQuitOption) {
+		if (myUserQuitOption || !myInputVariableValidity) {
 			return;
 		} else {
 			try {
 				final String diffVar = myUserInput.substring(DIFF_VAR_POS, DIFF_VAR_POS + 1);
-				myDiffVar = new BinaryTreeNode<String>(diffVar);
+				myVarDiff = new BinaryTreeNode<String>(diffVar);
 				final BinaryTreeNode<String> outputTreeNode =
-				    Differentiator.derive(tree.getNode(), myDiffVar);
-				// final String output = Differentiator.treeToString(outputTree);
+				    Differentiator.derive(tree.getNode(), myVarDiff);
 				System.out.println("\n" + myUserInput + " = " +
 				    Differentiator.treeNodeToString(outputTreeNode, 0));
 			} catch (final Exception error) {
@@ -120,13 +128,16 @@ public class CalculatorMain {
 			System.out.println("\nplease include Leibniz's notation and/or an expression to " +
 			    "be differentiated!");
 		}
+		if (!hasValidNumVars(expTree.getNode())) {
+			return quit;
+		}
 		return expTree;
 	}
 
 	/**
 	 * Return true if the user input is an upper or lower case 'q'. Otherwise return false.
 	 *
-	 * @param theUserInput the user's input
+	 * @param theUserInput the user input
 	 * @return true if the user input is an upper or lower case 'q'; otherwise false
 	 */
 	private static boolean isUserQuitting(final String theUserInput) {
@@ -137,5 +148,39 @@ public class CalculatorMain {
 			myUserQuitOption = false;
 			return false;
 		}
+	}
+
+	/**
+	 * Return true if the user input contains less than three variables. Otherwise return false.
+	 *
+	 * @param theTreeRoot the root node of the binary tree
+	 * @return true if the user input contains less than three variables; otherwise false
+	 */
+	private static boolean hasValidNumVars(final BinaryTreeNode<String> theTreeRoot) {
+		boolean result = false;
+		if (ExpressionParser.isFunction(theTreeRoot.getElement())) {
+			result = hasValidNumVars(theTreeRoot.getLeft());
+		} else {
+			String allVars = Differentiator.treeNodeToString(theTreeRoot, 0);
+			allVars = allVars.replaceAll("[^a-zA-Z]", "");
+			// System.out.println(userInputVariables);
+			// adds to the set each character as a string
+			Set<String> distinctVars = new HashSet<>();
+			for (int i = 0; i < allVars.length(); i++) {
+				String currString = Character.toString(allVars.charAt(i));
+				if (!distinctVars.contains(currString)) {
+					distinctVars.add(currString);
+				}
+			}
+			// determines number of variables in the user input expression
+			if (distinctVars.size() > 2) {
+				myInputVariableValidity = false;
+				result = false;
+			} else {
+				myInputVariableValidity = true;
+				result = true;
+			}
+		}
+		return result;
 	}
 }
