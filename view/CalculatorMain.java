@@ -75,12 +75,23 @@ public class CalculatorMain {
 		System.out.print(prompt);
 		myUserInput = theConsole.nextLine();
 		final BinaryTree<String> tree = getTree(theConsole, prompt);
+		// the user chosen variable of differentiation
+		if (isUserQuitting(myUserInput)) {
+			return;
+		}
+		final String varDiff = myUserInput.substring(DIFF_VAR_POS, DIFF_VAR_POS + 1);
+		myVarDiff = new BinaryTreeNode<String>(varDiff);
+		// check to see if user exceeded variable limit
+		if (!hasValidNumVars(tree.getNode(), myVarDiff.getElement())) {
+			return;
+		}
+
+		// placeholder
+
 		if (myUserQuitOption || !myInputVariableValidity) {
 			return;
 		} else {
 			try {
-				final String diffVar = myUserInput.substring(DIFF_VAR_POS, DIFF_VAR_POS + 1);
-				myVarDiff = new BinaryTreeNode<String>(diffVar);
 				final BinaryTreeNode<String> outputTreeNode =
 				    Differentiator.derive(tree.getNode(), myVarDiff);
 				System.out.println("\n" + myUserInput + " = " +
@@ -128,9 +139,6 @@ public class CalculatorMain {
 			System.out.println("\nplease include Leibniz's notation and/or an expression to " +
 			    "be differentiated!");
 		}
-		if (!hasValidNumVars(expTree.getNode())) {
-			return quit;
-		}
 		return expTree;
 	}
 
@@ -153,17 +161,23 @@ public class CalculatorMain {
 	/**
 	 * Return true if the user input contains less than three variables. Otherwise return false.
 	 *
-	 * @param theTreeRoot the root node of the binary tree
+	 * @param theRoot the root node of the binary tree
+	 * @param theVarDiffElem
 	 * @return true if the user input contains less than three variables; otherwise false
 	 */
-	private static boolean hasValidNumVars(final BinaryTreeNode<String> theTreeRoot) {
+	private static boolean hasValidNumVars(final BinaryTreeNode<String> theRoot,
+	    final String theVarDiffElem) {
 		boolean result = false;
-		if (ExpressionParser.isFunction(theTreeRoot.getElement())) {
-			result = hasValidNumVars(theTreeRoot.getLeft());
+		final String rootElem = theRoot.getElement();
+		if (ExpressionParser.isFunction(rootElem)) {
+			result = hasValidNumVars(theRoot.getLeft(), theVarDiffElem);
+		} else if (Differentiator.isOperator(rootElem)) {
+			result = hasValidNumVars(theRoot.getLeft(), theVarDiffElem) ||
+			    hasValidNumVars(theRoot.getRight(), theVarDiffElem);
 		} else {
-			String allVars = Differentiator.treeNodeToString(theTreeRoot, 0);
-			allVars = allVars.replaceAll("[^a-zA-Z]", "");
-			// System.out.println(userInputVariables);
+			String allVars = Differentiator.treeNodeToString(theRoot, 0);
+			allVars = allVars.replaceAll("[^a-zA-Z&&[^" + theVarDiffElem + "]]", "");
+			System.out.println(allVars);
 			// adds to the set each character as a string
 			Set<String> distinctVars = new HashSet<>();
 			for (int i = 0; i < allVars.length(); i++) {
