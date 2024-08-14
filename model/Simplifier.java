@@ -52,9 +52,9 @@ public class Simplifier {
 		BinaryTreeNode<String> simpExp = null;
 
 		if (theRoot.numChildren() == 2) {
-			simpExp = shallowSimplification(theRoot);
+			simpExp = shallowSimplify(theRoot);
 		} else if (theRoot.numChildren() > 2) {
-			simpExp = deepSimplification(theRoot);
+			simpExp = deepSimplify(theRoot);
 		}
 
 		return simpExp;
@@ -73,78 +73,108 @@ public class Simplifier {
 	 * @param theRoot
 	 * @return
 	 */
-	private static BinaryTreeNode<String> shallowSimplification(
-	    final BinaryTreeNode<String> theRoot) {
-
+	private static BinaryTreeNode<String> shallowSimplify(final BinaryTreeNode<String> theRoot) {
+		// necessary components to simplify the shallow tree
 		final String leftVar = theRoot.getLeft().getElement().replaceAll("[^a-zA-Z]", "");
 		final String rightVar = theRoot.getRight().getElement().replaceAll("[^a-zA-Z]", "");
-		String leftNum = theRoot.getLeft().getElement().replaceAll("[^0-9&&[^.]]", "");
-		String rightNum = theRoot.getRight().getElement().replaceAll("[^0-9&&[^.]]", "");
-
-		if (leftNum.isEmpty()) {
-			leftNum = "1";
+		String leftNumStr = theRoot.getLeft().getElement().replaceAll("[^0-9&&[^.]]", "");
+		String rightNumStr = theRoot.getRight().getElement().replaceAll("[^0-9&&[^.]]", "");
+		if (leftNumStr.isEmpty()) {
+			leftNumStr = "1";
 		}
-		if (rightNum.isEmpty()) {
-			rightNum = "1";
+		if (rightNumStr.isEmpty()) {
+			rightNumStr = "1";
 		}
-
-		Double left = Double.parseDouble(leftNum);
-		Double right = Double.parseDouble(rightNum);
-
-		BinaryTreeNode<String> temp = null;
-		BinaryTreeNode<String> leftNode = null;
-		BinaryTreeNode<String> rightNode = null;
-		BinaryTreeNode<String> result = theRoot;
-
-		// test -------------------------------------------------------------------------------
-		if (leftVar.equals(rightVar) && !leftVar.isEmpty()) { // both contain same variable
-			System.out.println(leftVar + " = " + rightVar + " (" + leftNum + ", " +
-			    rightNum + ")");
-
-			// both don't contain variables
-		} else if (!containsVariables(theRoot.getLeft().getElement()) &&
-		    !containsVariables(theRoot.getRight().getElement())) {
-			    System.out.println(leftNum + " and " + rightNum);
-		    }
-		// test -------------------------------------------------------------------------------
-
 		final String operator = theRoot.getElement();
-		switch (operator) {
+		final Double numResult = evaluate(operator, Double.parseDouble(leftNumStr),
+		    Double.parseDouble(rightNumStr));
+		final String strResult = String.valueOf(numResult);
+		BinaryTreeNode<String> simpExp = theRoot;
+		// main portion of simplifying
+		// if (result is zero or both are constants) and operator is not an exponent
+		if (numResult == 0.0 || (leftVar.isEmpty() && rightVar.isEmpty())) {
+			if (!operator.equals("^") && !operator.equals("-")) {
+				simpExp = new BinaryTreeNode<String>(strResult);
+			}
+		} else if (operator.equals("-") || operator.equals("+")) {
+			if (leftVar.equals(rightVar) && !leftVar.isEmpty()) { // both have same vars
+				simpExp = new BinaryTreeNode<String>(strResult + leftVar);
+			}
+		} else if (operator.equals("/")) {
+			if (leftVar.equals(rightVar) && !leftVar.isEmpty()) { // both have same vars
+				final BinaryTreeNode<String> leftNode =
+				    new BinaryTreeNode<String>(leftNumStr);
+				final BinaryTreeNode<String> rightNode =
+				    new BinaryTreeNode<String>(rightNumStr);
+				final BinaryTreeNode<String> divide =
+				    new BinaryTreeNode<String>("/", leftNode, rightNode);
+				final BinaryTreeNode<String> var = new BinaryTreeNode<String>(leftVar);
+				simpExp = new BinaryTreeNode<String>("*", divide, var);
+			}
+		} else if (operator.equals("*")) {
+			if (leftVar.equals(rightVar) && !leftVar.isEmpty()) { // both have same vars
+				final BinaryTreeNode<String> base =
+				    new BinaryTreeNode<String>(strResult + leftVar);
+				final BinaryTreeNode<String> two = new BinaryTreeNode<String>("2");
+				simpExp = new BinaryTreeNode<String>("^", base, two);
+			} else { // one side has a variable
+				if (leftVar.isEmpty()) {
+					simpExp = new BinaryTreeNode<String>(strResult + rightVar);
+				}
+				if (rightVar.isEmpty()) {
+					simpExp = new BinaryTreeNode<String>(strResult + leftVar);
+				}
+			}
+		}
+		// else if (operator.equals("^")) { // 10 ^ 2x = 100 ^ x or 10x ^ 2 = 100x
+		// final BinaryTreeNode<String> nodeResult = new BinaryTreeNode<String>(strResult);
+		// BinaryTreeNode<String> var = null;
+		// if (leftVar.isEmpty()) {
+		// var = new BinaryTreeNode<String>(rightVar);
+		// simpExp = new BinaryTreeNode<String>("^", nodeResult, var);
+		// }
+		// if (rightVar.isEmpty()) {
+		// var = new BinaryTreeNode<String>(leftVar);
+		// simpExp = new BinaryTreeNode<String>("^", nodeResult, var);
+		// }
+		// }
+		return simpExp;
+	}
+
+	/**
+	 *
+	 *
+	 * @param theOperator
+	 * @param theLeftOperand
+	 * @param theRightOperand
+	 * @return
+	 */
+	private static Double evaluate(final String theOperator, final Double theLeftOperand,
+	    final Double theRightOperand) {
+		Double result = 0.0;
+		switch (theOperator) {
 			case "-":
-				Double difference = left - right;
-				if (leftVar.equals(rightVar) && !leftVar.isEmpty()) { // both contain variables
-					if (difference == 0.0) {
-						result = new BinaryTreeNode<String>(String.valueOf(difference));
-					} else {
-						result = new BinaryTreeNode<String>(String.valueOf(difference) +
-						    leftVar);
-					}
-				} else if (!containsVariables(theRoot.getLeft().getElement()) &&
-				    !containsVariables(theRoot.getRight().getElement())) { // only constants
-					    result = new BinaryTreeNode<String>(String.valueOf(difference));
-				    }
+				result = theLeftOperand - theRightOperand;
 				break;
 			case "+":
+				result = theLeftOperand + theRightOperand;
 				break;
 			case "/":
+				result = theLeftOperand / theRightOperand;
 				break;
 			case "*":
+				result = theLeftOperand * theRightOperand;
 				break;
 			case "^":
-				if (!containsVariables(theRoot.getLeft().getElement()) &&
-				    !containsVariables(theRoot.getRight().getElement())) { // only constants
-					Double power = Math.pow(left, right);
-					result = new BinaryTreeNode<String>(String.valueOf(power));
-				}
+				result = Math.pow(theLeftOperand, theRightOperand);
 				break;
 		}
 		return result;
 	}
 
-	private static BinaryTreeNode<String> deepSimplification(
-	    final BinaryTreeNode<String> theRoot) {
+	private static BinaryTreeNode<String> deepSimplify(final BinaryTreeNode<String> theRoot) {
 		// TODO
-		return null;
+		return theRoot;
 	}
 
 	/**
