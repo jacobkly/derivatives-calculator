@@ -32,7 +32,7 @@ public class Differentiator {
 	}
 
 	/**
-	 * Returns a binary tree node representing the derivative of the original root's
+	 * Returns a binary tree node representing the derivative of the specified root's
 	 * equivalent expression.
 	 *
 	 * @param theRoot		the root node representing the expression segment being derived
@@ -42,7 +42,7 @@ public class Differentiator {
 	public static BinaryTreeNode<String> derive(final BinaryTreeNode<String> theRoot,
 	    final BinaryTreeNode<String> theVarDiff) {
 		// System.out.println("\n" + treeToString(theRoot));
-		// reset the global values to accurately differentiates the root
+		// reset the global values to accurately differ!entiates the root
 		myNonVarDiffElement = null;
 		myNonVarDiffNode = null;
 		myNonVarDiffLeibniz = null;
@@ -99,15 +99,15 @@ public class Differentiator {
 	 */
 	private static BinaryTreeNode<String> deriveOperator(final BinaryTreeNode<String> theRoot,
 	    final BinaryTreeNode<String> theVarDiff) {
-		final String operator = theRoot.getElement();
 		final BinaryTreeNode<String> diffLeftNode = derive(theRoot.getLeft(), theVarDiff);
 		final BinaryTreeNode<String> diffRightNode = derive(theRoot.getRight(), theVarDiff);
-
 		final BinaryTreeNode<String> leftProduct =
 		    new BinaryTreeNode<String>("*", diffLeftNode, theRoot.getRight());
 		final BinaryTreeNode<String> rightProduct =
 		    new BinaryTreeNode<String>("*", theRoot.getLeft(), diffRightNode);
 		BinaryTreeNode<String> derivative = null;
+
+		final String operator = theRoot.getElement();
 		switch (operator) {
 			case "-":
 				derivative = new BinaryTreeNode<String>(operator, diffLeftNode, diffRightNode);
@@ -410,7 +410,7 @@ public class Differentiator {
 	 * @param theString the String being examined
 	 * @return true if the String is an operator; otherwise false
 	 */
-	private static boolean isOperator(final String theString) {
+	public static boolean isOperator(final String theString) {
 		boolean result = false;
 		if (theString.equals("-") || theString.equals("+") || theString.equals("/") ||
 		    theString.equals("*") || theString.equals("^")) {
