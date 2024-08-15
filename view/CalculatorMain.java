@@ -10,6 +10,7 @@ import java.util.Scanner;
 import java.util.Set;
 import model.Differentiator;
 import model.ExpressionParser;
+import model.Simplifier;
 import structures.BinaryTree;
 import structures.BinaryTreeNode;
 
@@ -75,31 +76,38 @@ public class CalculatorMain {
 		System.out.print(prompt);
 		myUserInput = theConsole.nextLine();
 		final BinaryTree<String> tree = getTree(theConsole, prompt);
-		// the user chosen variable of differentiation
 		if (isUserQuitting(myUserInput)) {
 			return;
 		}
+		// the user chosen variable of differentiation
 		final String varDiff = myUserInput.substring(DIFF_VAR_POS, DIFF_VAR_POS + 1);
 		myVarDiff = new BinaryTreeNode<String>(varDiff);
 		// check to see if user exceeded variable limit
 		if (!hasValidNumVars(tree.getNode(), myVarDiff.getElement())) {
 			return;
 		}
-
-		// placeholder
-
+		// main portion
 		if (myUserQuitOption || !myInputVariableValidity) {
 			return;
 		} else {
-			try {
-				final BinaryTreeNode<String> outputTreeNode =
-				    Differentiator.derive(tree.getNode(), myVarDiff);
-				System.out.println("\n" + myUserInput + " = " +
-				    Differentiator.treeNodeToString(outputTreeNode, 0));
-			} catch (final Exception error) {
-				System.out.println("evaluation error has occured!");
-			}
+			// try {
+			final BinaryTreeNode<String> outputTreeNode =
+			    Differentiator.derive(tree.getNode(), myVarDiff);
+			final String derivativeStr = Differentiator.treeNodeToString(outputTreeNode, 0);
+			final BinaryTreeNode<String> simplifiedExp =
+			    Simplifier.simplify(outputTreeNode);
+			final String simplifiedStr = Differentiator.treeNodeToString(simplifiedExp, 0);
+			displayResult(myUserInput, derivativeStr, simplifiedStr);
+			// System.out.println("\n" + myUserInput + " = " +
+			// Differentiator.treeNodeToString(outputTreeNode, 0));
+			// } catch (final Exception error) {
+			// System.out.println("evaluation error has occured!");
+			// }
 		}
+
+		String treeString = Differentiator.treeNodeToString(Simplifier.simplify(tree.getNode()), 0);
+		System.out.println("\n\n------------------\n" + treeString +
+		    "\n------------------\n");
 	}
 
 	/**
@@ -162,21 +170,21 @@ public class CalculatorMain {
 	 * Return true if the user input contains less than three variables. Otherwise return false.
 	 *
 	 * @param theRoot the root node of the binary tree
-	 * @param theVarDiffElem
+	 * @param theVarDiffString the variable of differentiation represented as a String
 	 * @return true if the user input contains less than three variables; otherwise false
 	 */
 	private static boolean hasValidNumVars(final BinaryTreeNode<String> theRoot,
-	    final String theVarDiffElem) {
+	    final String theVarDiffString) {
 		boolean result = false;
 		final String rootElem = theRoot.getElement();
 		if (ExpressionParser.isFunction(rootElem)) {
-			result = hasValidNumVars(theRoot.getLeft(), theVarDiffElem);
+			result = hasValidNumVars(theRoot.getLeft(), theVarDiffString);
 		} else if (Differentiator.isOperator(rootElem)) {
-			result = hasValidNumVars(theRoot.getLeft(), theVarDiffElem) ||
-			    hasValidNumVars(theRoot.getRight(), theVarDiffElem);
+			result = hasValidNumVars(theRoot.getLeft(), theVarDiffString) ||
+			    hasValidNumVars(theRoot.getRight(), theVarDiffString);
 		} else {
 			String allVars = Differentiator.treeNodeToString(theRoot, 0);
-			allVars = allVars.replaceAll("[^a-zA-Z&&[^" + theVarDiffElem + "]]", "");
+			allVars = allVars.replaceAll("[^a-zA-Z&&[^" + theVarDiffString + "]]", "");
 			System.out.println(allVars);
 			// adds to the set each character as a string
 			Set<String> distinctVars = new HashSet<>();
@@ -197,4 +205,19 @@ public class CalculatorMain {
 		}
 		return result;
 	}
+
+	/**
+	 * Displays the derivative of the user input in both a simplified and extended form.
+	 *
+	 * @param theUserInput				the user inputed expression to be differentiated
+	 * @param theDerivative				the unsimplified derivative of the user chosen expression
+	 * @param theSimplfiedDerivative	the simplified derivative of the user chosen expression
+	 */
+	private static void displayResult(final String theUserInput, final String theDerivative,
+	    final String theSimplfiedDerivative) {
+		System.out.println("\nsimplified solution:\n" + theUserInput + " = " +
+		    theSimplfiedDerivative);
+		System.out.println("extended solution:\n" + theUserInput + " = " + theDerivative + "\n");
+	}
+
 }
