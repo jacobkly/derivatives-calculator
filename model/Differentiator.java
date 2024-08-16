@@ -475,7 +475,7 @@ public class Differentiator {
 			if (isOperator(rootElement)) {
 				result += treeNodeToString(theRoot.getLeft(), tracker) + " " +
 				    rootElement + " " + treeNodeToString(theRoot.getRight(), tracker);
-			} else if (ExpressionParser.isFunction(rootElement)) {
+			} else if (containsFunction(rootElement)) {
 				// WRONG - later implement the first pair of parentheses when inside the subtree
 				result += rootElement + "(" + treeNodeToString(theRoot.getLeft(), tracker) + ")";
 			} else { // second (real) base case - root is a constant or var of differentiation
@@ -484,6 +484,28 @@ public class Differentiator {
 			// checks to see if a right parenthesis is needed
 			if (theTracker == 1 && theRoot.numChildren() > 1) {
 				result += ")";
+			}
+		}
+		return result;
+	}
+
+	/**
+	 * Return true if the specified String contains a valid function. Otherwise returns false.
+	 *
+	 * @param theString the String being considered to contain a function
+	 * @return true if the specified String contains a valid function; otherwise false
+	 */
+	private static boolean containsFunction(final String theString) {
+		boolean result = false;
+		final int length = theString.length();
+		if (ExpressionParser.isFunction(theString)) {
+			result = true;
+		} else if (length >= 3) {
+			for (int i = 1; i < length; i++) {
+				if (ExpressionParser.isFunction(theString.substring(i))) {
+					result = true;
+					break;
+				}
 			}
 		}
 		return result;
