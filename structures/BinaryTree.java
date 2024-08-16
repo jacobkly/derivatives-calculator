@@ -38,8 +38,7 @@ public class BinaryTree<T> implements BinaryTreeADT<T>, Iterable<T> {
 	 * @param theLeft		the left subtree of this binary tree
 	 * @param theRight		the right subtree of this binary tree
 	 */
-	public BinaryTree(final T theElement, final BinaryTree<T> theLeft,
-	    final BinaryTree<T> theRight) {
+	public BinaryTree(final T theElement, final BinaryTree<T> theLeft, final BinaryTree<T> theRight) {
 		myRoot = new BinaryTreeNode<T>(theElement);
 		if (theLeft == null) {
 			myRoot.setLeft(null);
@@ -76,9 +75,9 @@ public class BinaryTree<T> implements BinaryTreeADT<T>, Iterable<T> {
 	}
 
 	/**
-	 * Returns an in-order traversal string representation of this binary tree.
+	 * Returns an in-order and level-order traversal String representation of this binary tree.
 	 *
-	 * @return an in-order traversal string representation of this binary tree
+	 * @return an in-order and level-order traversal String representation of this binary tree
 	 */
 	@Override
 	public String toString() {
