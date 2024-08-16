@@ -11,7 +11,7 @@ import structures.BinaryTreeNode;
  * simplifies the expression to its fullest extent.
  *
  * @author Jacob Klymenko
- * @version 1.0
+ * @version 2.1
  */
 public class Simplifier {
 
@@ -21,8 +21,8 @@ public class Simplifier {
 	}
 
 	/**
-	 * Returns a binary tree node representing the most simplified form of the mathematical
-	 * expression of the specified root's equivalent expression.
+	 * Returns a binary tree node representing the most simplified form, of the mathematical
+	 * expression from the specified root, possible by this Simplifier.
 	 *
 	 * @param theRoot the root node representing the expression segment being simplified
 	 * @return a binary tree node representing the simplified expression of the specified root
@@ -36,10 +36,9 @@ public class Simplifier {
 		if (Differentiator.isOperator(rootElem)) {
 			leftNode = simplify(theRoot.getLeft());
 			rightNode = simplify(theRoot.getRight());
-			simpExp = chooseDepth(new BinaryTreeNode<String>(rootElem, leftNode, rightNode));
+			simpExp = simplifyOperator(new BinaryTreeNode<String>(rootElem, leftNode, rightNode));
 		} else if (ExpressionParser.isFunction(rootElem)) {
-			leftNode = simplify(theRoot.getLeft());
-			simpExp = chooseDepth(new BinaryTreeNode<String>(rootElem, leftNode, null));
+			simpExp = new BinaryTreeNode<String>(rootElem, simplify(theRoot.getLeft()), null);
 		} else { // constant and/or variable
 			simpExp = theRoot;
 		}
@@ -47,30 +46,28 @@ public class Simplifier {
 		return simpExp;
 	}
 
-	private static BinaryTreeNode<String> chooseDepth(final BinaryTreeNode<String> theRoot) {
-		BinaryTreeNode<String> simpExp = theRoot;
-		if (theRoot.numChildren() == 2) {
-			simpExp = shallowSimplify(theRoot);
-		} else if (theRoot.numChildren() > 2) {
-			simpExp = deepSimplify(theRoot);
-		} // else simpExp = theRoot
-		return simpExp;
-	}
-
-	// 1 - both don't contain variables
-	// 2 - both contain variables
-	// 3 - either one contains a variable
-	// 4 - either contains an operator
-	// 5 - either contains a function
-	// else can't be simplified so return theRoot
-
 	/**
+	 * Returns a binary tree node representing a simplified form of the mathematical
+	 * expression of the specified root's equivalent expression. The specified root contains
+	 * an operator, and the left and right nodes will be simplified according to the contents.
 	 *
-	 *
-	 * @param theRoot
-	 * @return
+	 * @param theRoot the root node representing the expression segment being simplified
+	 * @return a binary tree node representing the simplified expression of the specified root
 	 */
-	private static BinaryTreeNode<String> shallowSimplify(final BinaryTreeNode<String> theRoot) {
+	private static BinaryTreeNode<String> simplifyOperator(final BinaryTreeNode<String> theRoot) {
+
+		// check if either sides are functions
+		final String leftElem = theRoot.getLeft().getElement();
+		final String rightElem = theRoot.getRight().getElement();
+		if (ExpressionParser.isFunction(leftElem) || ExpressionParser.isFunction(rightElem)) {
+			return simplifyOpWithFunc(theRoot);
+		}
+
+		// if condition stands, no further simplifying is possible by this Simplifier
+		if (Differentiator.isOperator(leftElem) || Differentiator.isOperator(rightElem)) {
+			return theRoot;
+		}
+
 		// necessary components to simplify the shallow tree root
 		final String leftVar = theRoot.getLeft().getElement().replaceAll("[^a-zA-Z]", "");
 		final String rightVar = theRoot.getRight().getElement().replaceAll("[^a-zA-Z]", "");
@@ -132,66 +129,13 @@ public class Simplifier {
 		return simpExp;
 	}
 
-	private static BinaryTreeNode<String> deepSimplify(final BinaryTreeNode<String> theRoot) {
-		BinaryTreeNode<String> simpExp = theRoot;
-		final String rootElem = theRoot.getElement();
-		if (ExpressionParser.isFunction(rootElem)) {
-			simpExp = simplify(theRoot.getLeft());
-		} else if (Differentiator.isOperator(rootElem)) {
-			final String leftElem = theRoot.getLeft().getElement();
-			final String rightElem = theRoot.getRight().getElement();
-			boolean isLeftFunc = ExpressionParser.isFunction(leftElem);
-			boolean isRightFunc = ExpressionParser.isFunction(rightElem);
-			boolean isLeftOp = Differentiator.isOperator(leftElem);
-			boolean isRightOp = Differentiator.isOperator(rightElem);
-
-			if (!isLeftFunc && !isLeftOp) {
-				final Double leftNum = Double.parseDouble(leftElem);
-				if (rootElem.equals("*")) {
-					if (leftNum == 0) {
-						simpExp = new BinaryTreeNode<String>("0");
-					} else if (leftNum == 1) {
-						simpExp = theRoot.getRight();
-					}
-				} else if (rootElem.equals("/")) {
-					if (leftNum == 0) {
-						simpExp = new BinaryTreeNode<String>("0");
-					}
-				}
-			} else if (!isRightFunc && !isRightOp) {
-				final Double rightNum = Double.parseDouble(rightElem);
-				if (rootElem.equals("*")) {
-					if (rightNum == 0) {
-						simpExp = new BinaryTreeNode<String>("0");
-					} else if (rightNum == 1) {
-						simpExp = theRoot.getRight();
-					}
-				} else if (rootElem.equals("/")) {
-					if (rightNum == 1) {
-						simpExp = theRoot.getLeft();
-					}
-				}
-			} else if (isLeftFunc && !isRightFunc && !isRightOp) {
-				if (rootElem.equals("*")) {
-					simpExp = new BinaryTreeNode<String>(rightElem + leftElem,
-					    theRoot.getLeft().getLeft(), null);
-				}
-			} else if (isRightFunc && !isLeftFunc && !isLeftOp) {
-				if (rootElem.equals("*")) {
-					simpExp = new BinaryTreeNode<String>(leftElem + rightElem,
-					    theRoot.getRight().getLeft(), null);
-				}
-			}
-		}
-		return simpExp;
-	}
-
 	/**
+	 * Return a Double value which occurs when applying the specified mathematical operator on
+	 * the specified operands, respecting associativity rules.
 	 *
-	 *
-	 * @param theOperator
-	 * @param theLeftOperand
-	 * @param theRightOperand
+	 * @param theOperator		the mathematical operator represented as a String
+	 * @param theLeftOperand	the left operand represented as a Double
+	 * @param theRightOperand	the right operand represented as a Double
 	 * @return
 	 */
 	private static Double applyOperator(final String theOperator, final Double theLeftOperand,
@@ -216,4 +160,106 @@ public class Simplifier {
 		}
 		return result;
 	}
+
+	/**
+	 * Returns a binary tree node representing a simplified form of the mathematical
+	 * expression of the specified root's equivalent expression. The specified root contains
+	 * an operator, and either the left or right node contains a function. Only the simple
+	 * simplifying methods are done here.
+	 *
+	 * @param theRoot the root node representing the expression segment being simplified
+	 * @return a binary tree node representing the simplified expression of the specified root
+	 */
+	private static BinaryTreeNode<String> simplifyOpWithFunc(final BinaryTreeNode<String> theRoot) {
+		BinaryTreeNode<String> simpExp = theRoot;
+		final String operator = theRoot.getElement();
+		final String leftElem = theRoot.getLeft().getElement();
+		final String rightElem = theRoot.getRight().getElement();
+		boolean isLeftFunc = ExpressionParser.isFunction(leftElem);
+		boolean isRightFunc = ExpressionParser.isFunction(rightElem);
+		boolean isLeftOp = Differentiator.isOperator(leftElem);
+		boolean isRightOp = Differentiator.isOperator(rightElem);
+		boolean isLeftVar = leftElem.replaceAll("[0-9.]", "").length() != 0;
+		boolean isRightVar = rightElem.replaceAll("[0-9.]", "").length() != 0;
+
+		final boolean isLeftNumVar = !isLeftFunc && !isLeftOp;
+		final boolean isRightNumVar = !isRightFunc && !isRightOp;
+		if (operator.equals("*")) {
+			// opposite must be a function
+			if (isLeftNumVar) { // left is constant and/or variable
+				if (!isLeftVar) {
+					final double leftNum = Double.parseDouble(leftElem);
+					if (leftNum == 0) {
+						simpExp = new BinaryTreeNode<String>("0");
+					} else if (leftNum == 1) {
+						simpExp = simplify(theRoot.getRight());
+					}
+				} else {
+					simpExp = new BinaryTreeNode<String>(leftElem + rightElem,
+					    simplify(theRoot.getRight().getLeft()), null);
+				}
+			} else if (isRightNumVar) { // right is constant and/or variable
+				if (!isRightVar) {
+					final double rightNum = Double.parseDouble(rightElem);
+					if (rightNum == 0) {
+						simpExp = new BinaryTreeNode<String>("0");
+					} else if (rightNum == 1) {
+						simpExp = simplify(theRoot.getLeft());
+					}
+				} else {
+					simpExp = new BinaryTreeNode<String>(rightElem + leftElem,
+					    simplify(theRoot.getLeft().getLeft()), null);
+				}
+			}
+		} else if (operator.equals("/")) {
+			if (isLeftNumVar && !isLeftVar) { // left is a constant
+				final double leftNum = Double.parseDouble(leftElem);
+				if (leftNum == 0) {
+					simpExp = new BinaryTreeNode<String>("0");
+				}
+			} else if (isRightNumVar && !isRightVar) { // right is a constant
+				final double rightNum = Double.parseDouble(rightElem);
+				if (rightNum == 1) {
+					simpExp = simplify(theRoot.getLeft());
+				}
+			}
+		} else if (operator.equals("+")) {
+			if (isLeftNumVar && !isLeftVar) { // left is a constant
+				final double leftNum = Double.parseDouble(leftElem);
+				if (leftNum == 0) {
+					simpExp = simplify(theRoot.getRight());
+				}
+			} else if (isRightNumVar && !isRightVar) { // right is a constant
+				final double rightNum = Double.parseDouble(rightElem);
+				if (rightNum == 0) {
+					simpExp = simplify(theRoot.getLeft());
+				}
+			}
+		} else if (operator.equals("-")) {
+			if (isRightNumVar && !isRightVar) { // right is a constant
+				final double rightNum = Double.parseDouble(rightElem);
+				if (rightNum == 0) {
+					simpExp = simplify(theRoot.getLeft());
+				}
+			}
+		} else if (operator.equals("^")) {
+			if (isLeftNumVar && !isLeftVar) { // left is a constant
+				final double leftNum = Double.parseDouble(leftElem);
+				if (leftNum == 0) {
+					simpExp = new BinaryTreeNode<String>("0");
+				} else if (leftNum == 1) {
+					simpExp = new BinaryTreeNode<String>("1");
+				}
+			} else if (isRightNumVar && !isRightVar) { // right is a constant
+				final double rightNum = Double.parseDouble(rightElem);
+				if (rightNum == 0) {
+					simpExp = new BinaryTreeNode<String>("1");
+				} else if (rightNum == 1) {
+					simpExp = simplify(theRoot.getLeft());
+				}
+			}
+		}
+		return simpExp;
+	}
+
 }
