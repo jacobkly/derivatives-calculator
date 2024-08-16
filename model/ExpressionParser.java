@@ -175,11 +175,13 @@ public class ExpressionParser {
 		} else if (length == 3 && myFunctions.contains(theString)) { // all normal trig and log
 			result = true;
 		} else if (length > 4) {
-			if (myFunctions.contains(theString.substring(0, 3))) { // log_<base>
+			// log_<base>
+			if (myFunctions.contains(theString.substring(0, 3)) && theString.contains("_")) {
 				result = true;
-			} else if (myFunctions.contains(theString)) { // inverse trig
-				result = true;
-			}
+			} else if (myFunctions.contains(theString) &&
+			    myFunctions.contains(theString.substring(3))) { // inverse trig
+				    result = true;
+			    }
 		} else {
 			result = false;
 		}
