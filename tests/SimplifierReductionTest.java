@@ -1,5 +1,5 @@
 /**
- * OutputLengthTest - Derivatives Calculator
+ * SimplifierReductionTest - Derivatives Calculator
  */
 
 package tests;
@@ -25,7 +25,7 @@ import structures.BinaryTreeNode;
  * @author Jacob Klymenko
  * @version 1.0
  */
-public class OutputLengthTest {
+public class SimplifierReductionTest {
 
 	/** The File containing the list of expressions to be differentiated and simplified. */
 	private final static File EXPRESSIONS_FILE = new File("src\\expressions.txt");
@@ -49,7 +49,7 @@ public class OutputLengthTest {
 	private static Double mySimpNodeOutputAverage = 0.0;
 
 	/** A private constructor to inhibit external instantiation. */
-	private OutputLengthTest() {
+	private SimplifierReductionTest() {
 		// do nothing
 	}
 
@@ -142,5 +142,7 @@ public class OutputLengthTest {
 		final DecimalFormat noDecimal = new DecimalFormat("####0");
 		final Double max = Math.max(stringResult, nodeResult);
 		System.out.println("larger percentage: " + noDecimal.format(max) + "%");
+		System.out.println("average percentage: " +
+		    noDecimal.format((stringResult + nodeResult) / 2) + "%");
 	}
 }
