@@ -22,7 +22,7 @@ import structures.BinaryTreeNode;
  */
 public class CalculatorMain {
 
-	/** The expected index position of the variable of differentiation. */
+	/** The expected index position of the variable of differentiation in the input String. */
 	private final static int DIFF_VAR_POS = 3;
 
 	/** The user inputed infix notation arithmetic expression. */
@@ -45,9 +45,9 @@ public class CalculatorMain {
 	/**
 	 * The start point for this program.
 	 *
-	 * @param theArgs command line arguments - ignored
+	 * @param theArgs the command line arguments - ignored
 	 */
-	public static void main(String[] args) {
+	public static void main(final String[] theArgs) {
 		System.out.println("single variable derivatives calculator... STAAARRT!!!");
 		ExpressionParser.setValidFunctions();
 		try (Scanner console = new Scanner(System.in)) {
@@ -90,24 +90,18 @@ public class CalculatorMain {
 		if (myUserQuitOption || !myInputVariableValidity) {
 			return;
 		} else {
-			// try {
-			final BinaryTreeNode<String> outputTreeNode =
-			    Differentiator.derive(tree.getNode(), myVarDiff);
-			final String derivativeStr = Differentiator.treeNodeToString(outputTreeNode, 0);
-			final BinaryTreeNode<String> simplifiedExp =
-			    Simplifier.simplify(outputTreeNode);
-			final String simplifiedStr = Differentiator.treeNodeToString(simplifiedExp, 0);
-			displayResult(myUserInput, derivativeStr, simplifiedStr);
-			// System.out.println("\n" + myUserInput + " = " +
-			// Differentiator.treeNodeToString(outputTreeNode, 0));
-			// } catch (final Exception error) {
-			// System.out.println("evaluation error has occured!");
-			// }
+			try {
+				final BinaryTreeNode<String> outputTreeNode =
+				    Differentiator.derive(tree.getNode(), myVarDiff);
+				final String derivativeStr = Differentiator.treeNodeToString(outputTreeNode, 0);
+				final BinaryTreeNode<String> simplifiedExp =
+				    Simplifier.simplify(outputTreeNode);
+				final String simplifiedStr = Differentiator.treeNodeToString(simplifiedExp, 0);
+				displayResult(myUserInput, derivativeStr, simplifiedStr);
+			} catch (final Exception error) {
+				System.out.println("evaluation error has occured!");
+			}
 		}
-
-		String treeString = Differentiator.treeNodeToString(Simplifier.simplify(tree.getNode()), 0);
-		System.out.println("\n\n------------------\n" + treeString +
-		    "\n------------------\n");
 	}
 
 	/**
@@ -185,7 +179,6 @@ public class CalculatorMain {
 		} else {
 			String allVars = Differentiator.treeNodeToString(theRoot, 0);
 			allVars = allVars.replaceAll("[^a-zA-Z&&[^" + theVarDiffString + "]]", "");
-			System.out.println(allVars);
 			// adds to the set each character as a string
 			Set<String> distinctVars = new HashSet<>();
 			for (int i = 0; i < allVars.length(); i++) {
