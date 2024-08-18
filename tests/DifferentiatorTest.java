@@ -451,7 +451,6 @@ class DifferentiatorTest {
 		final ArrayList<String> expList1 =
 		    ExpressionParser.stringToList("3.7 * log_10(8.2) - sin(3.14 / 3.5)");
 		final BinaryTree<String> expTree1 = ExpressionParser.shuntingYardTree(expList1);
-		System.out.println(Differentiator.treeNodeToString(expTree1.getNode(), 0));
 		assertEquals("(3.7 * log_10(8.2)) - sin((3.14 / 3.5))",
 		    Differentiator.treeNodeToString(expTree1.getNode(), 0));
 
@@ -459,7 +458,6 @@ class DifferentiatorTest {
 		    ExpressionParser.stringToList("(cos(2.5) + log_2(9.1 + 6.7 ^ 1.2)) * " +
 		        "(5.3 + sin(0.75 * pi))");
 		final BinaryTree<String> expTree2 = ExpressionParser.shuntingYardTree(expList2);
-		System.out.println(Differentiator.treeNodeToString(expTree2.getNode(), 0));
 		assertEquals("(cos(2.5) + log_2((9.1 + (6.7 ^ 1.2)))) * (5.3 + sin((0.75 * pi)))",
 		    Differentiator.treeNodeToString(expTree2.getNode(), 0));
 	}
