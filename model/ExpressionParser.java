@@ -93,7 +93,6 @@ public class ExpressionParser {
 		if (track != userInput.length()) {
 			result.add(userInput.substring(track));
 		}
-		System.out.println(result);
 		return result;
 	}
 
@@ -157,7 +156,6 @@ public class ExpressionParser {
 				mergeTrees(operandStack, operatorStack.pop());
 			}
 		}
-		System.out.println(operandStack.peek().toString());
 		return operandStack.peek();
 	}
 
@@ -197,7 +195,7 @@ public class ExpressionParser {
 	 */
 	private static void mergeTrees(final Deque<BinaryTree<String>> theOperandStack,
 	    final String theString) {
-		// System.out.println(theOperandStack.peek().getNodeElement());
+
 		if (isFunction(theString)) {
 			final BinaryTree<String> leftSubTree = theOperandStack.pop();
 			theOperandStack.push(new BinaryTree<String>(theString, leftSubTree, null));

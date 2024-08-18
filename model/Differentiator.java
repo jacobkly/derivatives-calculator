@@ -41,7 +41,6 @@ public class Differentiator {
 	 */
 	public static BinaryTreeNode<String> derive(final BinaryTreeNode<String> theRoot,
 	    final BinaryTreeNode<String> theVarDiff) {
-		// System.out.println("\n" + treeToString(theRoot));
 		// setup necessary components to complete the differentiation
 		setNonVarDiffComponents(theRoot, theVarDiff);
 		BinaryTreeNode<String> derivative = null;
@@ -431,7 +430,6 @@ public class Differentiator {
 				final String varDiffElem = theVarDiff.getElement();
 				myNonVarDiffElement = treeNodeToString(theRoot, 0).replaceAll("[^a-zA-Z&&[^" +
 				    varDiffElem + "]]", "");
-				// System.out.println(myNonVarDiffElement + " --- hello there");
 				if (myNonVarDiffElement.length() > 0) {
 					myNonVarDiffElement = Character.toString(myNonVarDiffElement.charAt(0));
 				}
@@ -440,7 +438,6 @@ public class Differentiator {
 				    "/d" + theVarDiff.getElement());
 			}
 		}
-		// System.out.println(myNonVarDiffElement + "what");
 	}
 
 	/**
