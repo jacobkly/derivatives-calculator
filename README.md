@@ -32,4 +32,4 @@ If you wish to see examples of acceptable expression formatting, please visit th
   - **100%** of this program was unit tested, using **[JUnit](https://en.wikipedia.org/wiki/JUnit)**.
   - Through empirical testing, using the 100 expressions in the [expressions.txt](https://github.com/jacobklymenko/derivatives-calculator/blob/main/expressions.txt) file, the Simplifier used in the calculator improves the output derivatives expression readability by an average of **38%**.
     - The test is conducted through the [SimplifierReductionTest.java](https://github.com/jacobklymenko/derivatives-calculator/blob/main/tests/SimplifierReductionTest.java) file.
-  - Implemented **12 differentation rules** resulting in a **95% correctness**.
+  - Implemented **24 differentation rules** resulting in a **95% correctness**.
